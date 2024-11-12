@@ -15,13 +15,14 @@ check_htcondor_jobs() {
 delay_until_space() {
   # checks whether the number of jobs in the queue is below the threshold before moving to the next run
   while true; do
+     sleep 900  # Check every 15 min
      num_current_jobs=$(check_htcondor_jobs)
      # if the number of jobs is below the threshold, break the loop
      if [[ $num_current_jobs -lt $HTCONDOR_THRESHOLD ]]; then
         break  # break out of the while loop
      fi
      echo $num_current_jobs " jobs in the queue, waiting till this is below " $HTCONDOR_THRESHOLD
-     sleep 900  # Check every 15 min
+
   done
 
   return 0
@@ -43,7 +44,6 @@ for MT in "${MASSES_MT[@]}"; do
       # the first mass run includes the full run
       if [[ $MT == "172.5" && "$PROCESS" == "ATLAS_TTBAR_13TEV_LJ_DIF" ]]; then
         ./bin/run_process "run_"$PROCESS --run_mode run_pre_and_main --input_dir $PROCESS &
-        sleep 600  # wait for 10 min before starting the next process
         pids+=($!)
         delay_until_space
       elif [[ $MT == "172.5" ]]; then
