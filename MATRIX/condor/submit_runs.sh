@@ -32,80 +32,113 @@ delay_until_space() {
   return 0
 }
 
-counter=0
+
+# GRID RUN
+
 pids=()  # Array to store PIDs of the background processes
-for MT in "${MASSES_MT[@]}"; do
-  for PHASE in "${RUNPHASES[@]}"; do
-    for PROCESS in "${PROCESSES[@]}"; do
-      echo "Starting process $PROCESS in phase $PHASE"
+PHASE="run_grid"
+for PROCESS in "${PROCESSES[@]}"; do
 
-      PROCESS_DIR=$INPUT_DIR/$PROCESS
+  echo "Starting process $PROCESS in phase $PHASE"
 
-      if [[ $counter -gt 0 ]]; then
-        MODEL_FILE=$INPUT_DIR/"run_"$PROCESS/"model.dat"
-        sed -i "s/^\(\s*6\s*\)[^ ]*/\1$MT/" "$MODEL_FILE"
-      fi
+  # set the initial top mass
+  MODEL_FILE=$INPUT_DIR/$PROCESS/"model.dat"
+  sed -i "s/^\(\s*6\s*\)[^ ]*/\1${MASSES_MT[0]}/" "$MODEL_FILE"
 
-      # grid run (if not done already)
-      if [[ $PHASE == "run_grid" && $counter -eq 0 ]]; then
-        # set the top mass
-        MODEL_FILE=$INPUT_DIR/$PROCESS/"model.dat"
-        sed -i "s/^\(\s*6\s*\)[^ ]*/\1$MT/" "$MODEL_FILE"
+  PROCESS_DIR=$INPUT_DIR/$PROCESS
 
-        ./bin/run_process "run_"$PROCESS --run_mode run_grid --input_dir $PROCESS &
-        pids+=($!)
-        echo "during grid run: "${pids[@]}
-        delay_until_space  # only continue from here if the number of jobs in the queue is below the threshold
-      # pre run (if not done already)
-      elif [[ $PHASE == "run_pre" && $counter -eq 0 ]]; then
-        # First check whether all background jobs from the previous phase (run_grid) have finished
-        echo "before staring pre-run: "${pids[@]}
-        for pid in "${pids[@]}"; do
-            wait $pid  # Wait for each process in the array
-            echo "Command with PID $pid has finished"
-        done
-        pids=()  # reset the array of PIDs
-        echo "All grid runs have finished. Continuing to the pre stage."
-
-        # check if main.running is gone
-        while true; do
-          if [[ ! -f $PWD/log/run_$PROCESS/main.running ]]; then break; fi
-        done
-
-        # start the pre-run
-        ./bin/run_process "run_"$PROCESS --run_mode run_pre &
-        pids+=($!)
-        delay_until_space  # only continue from here if the number of jobs in the queue is below the threshold
-      # main run
-      elif [[ $PHASE == "run_main" ]]; then
-
-         # First check whether all background jobs from the previous phase (run_pre) have finished
-        for pid in "${pids[@]}"; do
-            wait $pid  # Wait for each process in the array
-            echo "Command with PID $pid has finished"
-        done
-        pids=()  # reset the array of PIDs
-        echo "All pre-runs have finished. Continuing to the main stage."
-
-        # check if main.running is gone
-        while true; do
-          if [[ ! -f $PWD/log/run_$PROCESS/main.running ]]; then break; fi
-        done
-
-        # uncomment include_pre_in_results for the main run after the first mass point
-        if [[ $counter -gt 0 ]]; then
-          sed -i '/^#include_pre_in_results = 0/s/^#//' $INPUT_DIR/"run_"$PROCESS/parameter.dat
-        fi
-
-        ./bin/run_process "run_"$PROCESS --run_mode run_main &
-        pids+=($!)
-        delay_until_space  # only continue from here if the number of jobs in the queue is below the threshold
-
-      fi
-    done
-  done
-  counter=$((counter + 1))  # Increment counter
+  # grid run (if not done already)
+  if [[ $PHASE == "run_grid" ]]; then
+    ./bin/run_process "run_"$PROCESS --run_mode run_grid --input_dir $PROCESS &
+    pids+=($!)
+    delay_until_space  # only continue from here if the number of jobs in the queue is below the threshold
+  fi
 done
+
+# MAKE SURE TO WAIT FOR THE GRID RUNS TO FINISH BEFORE CONTINUING
+echo "before staring pre-run: "${pids[@]}
+for pid in "${pids[@]}"; do
+    wait $pid  # Wait for each process in the array
+    echo "Command with PID $pid has finished"
+done
+pids=()  # reset the array of PIDs
+echo "All grid runs have finished"
+echo "checking if main.running is gone"
+
+for PROCESS in "${PROCESSES[@]}"; do
+  while true; do
+    if [[ ! -f $PWD/log/run_$PROCESS/main.running ]]; then break; fi
+  done
+done
+echo "Continuing to the pre stage."
+
+# PRE-RUN
+PHASE="run_pre"
+
+for PROCESS in "${PROCESSES[@]}"; do
+  echo "Starting process $PROCESS in phase $PHASE"
+
+  PROCESS_DIR=$INPUT_DIR/$PROCESS
+
+  if [[ $PHASE == "run_pre" ]]; then
+
+    # check if main.running is gone
+    while true; do
+      if [[ ! -f $PWD/log/run_$PROCESS/main.running ]]; then break; fi
+    done
+
+    # start the pre-run
+    ./bin/run_process "run_"$PROCESS --run_mode run_pre &
+    pids+=($!)
+    delay_until_space  # only continue from here if the number of jobs in the queue is below the threshold
+  fi
+done
+
+# MAKE SURE TO WAIT FOR THE GRID RUNS TO FINISH BEFORE CONTINUING
+echo "Processes that need to finish before being able to start the main run: "${pids[@]}
+for pid in "${pids[@]}"; do
+    wait $pid  # Wait for each process in the array
+    echo "Command with PID $pid has finished"
+done
+pids=()  # reset the array of PIDs
+echo "All pre runs have finished"
+echo "checking if main.running is gone"
+for PROCESS in "${PROCESSES[@]}"; do
+  while true; do
+    if [[ ! -f $PWD/log/run_$PROCESS/main.running ]]; then break; fi
+  done
+done
+echo "Continuing to the main stage."
+
+# MAIN RUN
+counter=0
+for MT in "${MASSES_MT[@]}"; do
+
+  for PROCESS in "${PROCESSES[@]}"; do
+
+    # set the top mass
+    MODEL_FILE=$INPUT_DIR/"run_"$PROCESS/"model.dat"
+    sed -i "s/^\(\s*6\s*\)[^ ]*/\1$MT/" "$MODEL_FILE"
+
+    if [[ $counter -gt 0 ]]; then
+      sed -i '/^#include_pre_in_results = 0/s/^#//' $INPUT_DIR/"run_"$PROCESS/parameter.dat
+    fi
+    ./bin/run_process "run_"$PROCESS --run_mode run_main &
+    pids+=($!)
+    delay_until_space
+  done
+
+  # before moving to the next iteration of mt, wait for all the main runs to finish
+  for pid in "${pids[@]}"; do
+    wait $pid  # Wait for each process in the array
+    echo "Command with PID $pid has finished"
+  done
+  pids=()  # reset the array of PIDs
+
+  counter=$((counter+1))
+done
+
+
 
 # maybe useful
 # --run_mode run_pre_and_main to skip the generation of the grids
