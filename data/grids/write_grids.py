@@ -25,39 +25,40 @@ def copy_file(src: pathlib.Path, dest: pathlib.Path):
         print(f"Copied: {src} -> {dest}")
     except subprocess.CalledProcessError as e:
         print(f"Error copying file: {e}")
-        raise
+        #raise
 
 def get_nbins(src: pathlib.Path) -> int:
     """
     Get the number of bins in a PineAPPL grid file
     """
 
-    try:
-        result = subprocess.run(
-            [
-                "pineappl",
-                "read",
-                "--bins",
-                src,
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        return  len(result.stdout.split("\n")) - 3
 
-    except subprocess.CalledProcessError as e:
-        print(f"Error running pineappl info: {e}")
-        raise
+    result = subprocess.run(
+        [
+            "pineappl",
+            "read",
+            "--bins",
+            src,
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return  len(result.stdout.split("\n")) - 3
 
 
 
 def run_pineappl_write(src: pathlib.Path, dest: pathlib.Path, merge_bins: str = None):
     """Run the 'pineappl write' command."""
 
+
     if merge_bins is None:
-        n_bins = get_nbins(src)
-        merge_bins = f"0-{n_bins-1}"
+        try:
+            n_bins = get_nbins(src)
+            merge_bins = f"0-{n_bins-1}"
+        except:
+            print("Not able to extract number of bins")
+            return
 
     try:
         subprocess.run(
@@ -74,19 +75,16 @@ def run_pineappl_write(src: pathlib.Path, dest: pathlib.Path, merge_bins: str = 
         print(f"PineAPPL write: {src} -> {dest} (merge bins: {merge_bins})")
     except subprocess.CalledProcessError as e:
         print(f"Error running pineappl write: {e}")
-        raise
+        #raise
 
 def run_pineappl_merge(output: pathlib.Path, *inputs: pathlib.Path):
     """Run the 'pineappl merge' command."""
     try:
-        subprocess.run(
-            ["pineappl", "merge", output, *inputs],
-            check=True,
-        )
+        subprocess.run(["pineappl", "merge", output, *inputs],check=True,)
         print(f"PineAPPL merge: {inputs} -> {output}")
     except subprocess.CalledProcessError as e:
         print(f"Error running pineappl merge: {e}")
-        raise
+        #raise
 
 # Process files for matrix run 1
 matrix_run = "run_ATLAS_TTBAR_13TEV_HADR_DIF"
@@ -174,3 +172,9 @@ for exp in ["atlas", "cms"]:
     )
 
     copy_file(input_dir / "total_rate_NNLO.QCD.pineappl.lz4", output_dir / f"{exp.upper()}_TTBAR_8TEV_TOT_X-SEC.pineappl.lz4")
+
+for exp in ["atlas", "cms"]:
+
+    matrix_run = "run_ATLAS_TTBAR_7TEV_TOT_X-SEC"
+    input_dir = get_input_dir(matrix_run)
+    copy_file(input_dir / "total_rate_NNLO.QCD.pineappl.lz4", output_dir / f"{exp.upper()}_TTBAR_7TEV_TOT_X-SEC.pineappl.lz4")
