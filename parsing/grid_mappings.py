@@ -5,12 +5,14 @@ import subprocess
 # Define directories
 output_dir = pathlib.Path("../data/grids")
 matrix_result_dir = pathlib.Path("../MATRIX/result")
-pineappl_dir = pathlib.Path("NNLO-RUN/PineAPPL_grids")
+pineappl_dir = pathlib.Path("NNLO-run/PineAPPL_grids")
 
 # Define Matrix theory details
 theory = "40006000"
 output_dir = output_dir / theory  # Ensure output directory is scoped to the theory
 output_dir.mkdir(parents=True, exist_ok=True)
+temp_dir = output_dir / "temp"
+temp_dir.mkdir(parents=True, exist_ok=True)
 
 def get_input_dir(matrix_run: str) -> pathlib.Path:
     """Construct the full input directory path."""
@@ -83,4 +85,37 @@ run_pineappl_merge(
     input_dir / "dd1_NNLO.QCD.pineappl.lz4",
     input_dir / "dd2_NNLO.QCD.pineappl.lz4",
     input_dir / "dd3_NNLO.QCD.pineappl.lz4"
+)
+
+# TODO: how to integrate 2D dist?
+
+# for i, n_bins in {1: 4, 2:4, 3:3}.items():
+#     run_pineappl_write(
+#         input_dir / f"dd{i}_NNLO.QCD.pineappl.lz4",
+#         temp_dir / f"dd{i}_NNLO.QCD_INTEGRATED.pineappl.lz4",
+#         f"0-{n_bins-1}"
+#     )
+#
+# run_pineappl_merge(output_dir / "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR_INTEGRATED.pineappl.lz4", *list(temp_dir.glob("*.lz4")))
+# run_pineappl_write(
+#     output_dir / "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR_INTEGRATED.pineappl.lz4",
+#     output_dir / "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR_INTEGRATED_test.pineappl.lz4",
+#     "0-2"
+# )
+
+matrix_run = "run_ATLAS_TTBAR_8TEV_DIF"
+input_dir = get_input_dir(matrix_run)
+
+copy_file(input_dir / "atlas_2l_mttbar_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_8TEV_2L_DIF_MTTBAR.pineappl.lz4")
+run_pineappl_write(
+    input_dir / "atlas_2l_mttbar_NNLO.QCD.pineappl.lz4",
+    output_dir / "ATLAS_TTBAR_8TEV_2L_DIF_MTTBAR_INTEGRATED.pineappl.lz4",
+    "0-5"
+)
+
+copy_file(input_dir / "atlas_2l_yttbar_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_8TEV_2L_DIF_YTTBAR.pineappl.lz4")
+run_pineappl_write(
+    input_dir / "atlas_2l_yttbar_NNLO.QCD.pineappl.lz4",
+    output_dir / "ATLAS_TTBAR_8TEV_2L_DIF_YTTBAR_INTEGRATED.pineappl.lz4",
+    "0-4"
 )
