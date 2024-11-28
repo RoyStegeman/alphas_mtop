@@ -6,7 +6,7 @@ OUTPUT_DIR="/data/theorie/jthoeve/physics_projects/matrix-alle-hawaii2/MATRIX/ru
 for grid in ./*.lz4; do
 
   if [[ -f $grid ]]; then
-    
+
     dataset_name=$(basename "$grid" .pineappl.lz4)
     if [[ "$dataset_name" == *"TTBAR"* && "$dataset_name" != *"INTEGRATED"* ]]; then
       mkdir -p $OUTPUT_DIR/$dataset_name
@@ -17,5 +17,3 @@ for grid in ./*.lz4; do
     fi
   fi
 done
-
-

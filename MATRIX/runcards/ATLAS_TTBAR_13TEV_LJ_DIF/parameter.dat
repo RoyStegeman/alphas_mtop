@@ -110,4 +110,3 @@ save_previous_log = 0          #  switch to save previous log of this run (in lo
                                #  (separately for each contribution)
 reduce_workload = 0            #  switch to keep full job output (0), reduce (1) or minimize (2) workload on slow clusters
 random_seed = 0                #  specify integer value (grid-/pre-run reproducible)
-

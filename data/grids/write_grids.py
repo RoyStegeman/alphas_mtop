@@ -3,16 +3,16 @@ import pathlib
 import subprocess
 
 # Define directories
-output_dir = pathlib.Path("../data/grids")
-matrix_result_dir = pathlib.Path("../MATRIX/result")
+output_dir = pathlib.Path(".")
+matrix_result_dir = pathlib.Path("../../MATRIX/result")
 pineappl_dir = pathlib.Path("NNLO-run/PineAPPL_grids")
 
 # Define Matrix theory details
 theory = "40006000"
 output_dir = output_dir / theory  # Ensure output directory is scoped to the theory
 output_dir.mkdir(parents=True, exist_ok=True)
-temp_dir = output_dir / "temp"
-temp_dir.mkdir(parents=True, exist_ok=True)
+# temp_dir = output_dir / "temp"
+# temp_dir.mkdir(parents=True, exist_ok=True)
 
 def get_input_dir(matrix_run: str) -> pathlib.Path:
     """Construct the full input directory path."""
@@ -117,5 +117,33 @@ copy_file(input_dir / "atlas_2l_yttbar_NNLO.QCD.pineappl.lz4", output_dir / "ATL
 run_pineappl_write(
     input_dir / "atlas_2l_yttbar_NNLO.QCD.pineappl.lz4",
     output_dir / "ATLAS_TTBAR_8TEV_2L_DIF_YTTBAR_INTEGRATED.pineappl.lz4",
+    "0-4"
+)
+
+copy_file(input_dir / "atlas_lj_mttbar_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_MTTBAR.pineappl.lz4")
+run_pineappl_write(
+    input_dir / "atlas_lj_mttbar_NNLO.QCD.pineappl.lz4",
+    output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_MTTBAR_INTEGRATED.pineappl.lz4",
+    "0-6"
+)
+
+copy_file(input_dir / "atlas_lj_pTt_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_PTT.pineappl.lz4")
+run_pineappl_write(
+    input_dir / "atlas_lj_pTt_NNLO.QCD.pineappl.lz4",
+    output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_PTT_INTEGRATED.pineappl.lz4",
+    "0-7"
+)
+
+copy_file(input_dir / "atlas_lj_yt_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_YT.pineappl.lz4")
+run_pineappl_write(
+    input_dir / "atlas_lj_yt_NNLO.QCD.pineappl.lz4",
+    output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_YT_INTEGRATED.pineappl.lz4",
+    "0-4"
+)
+
+copy_file(input_dir / "atlas_lj_yttbar_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_YTTBAR.pineappl.lz4")
+run_pineappl_write(
+    input_dir / "atlas_lj_yttbar_NNLO.QCD.pineappl.lz4",
+    output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_YTTBAR_INTEGRATED.pineappl.lz4",
     "0-4"
 )
