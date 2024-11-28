@@ -27,8 +27,38 @@ def copy_file(src: pathlib.Path, dest: pathlib.Path):
         print(f"Error copying file: {e}")
         raise
 
-def run_pineappl_write(src: pathlib.Path, dest: pathlib.Path, merge_bins: str):
+def get_nbins(src: pathlib.Path) -> int:
+    """
+    Get the number of bins in a PineAPPL grid file
+    """
+
+    try:
+        result = subprocess.run(
+            [
+                "pineappl",
+                "read",
+                "--bins",
+                src,
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return  len(result.stdout.split("\n")) - 3
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error running pineappl info: {e}")
+        raise
+
+
+
+def run_pineappl_write(src: pathlib.Path, dest: pathlib.Path, merge_bins: str = None):
     """Run the 'pineappl write' command."""
+
+    if merge_bins is None:
+        n_bins = get_nbins(src)
+        merge_bins = f"0-{n_bins-1}"
+
     try:
         subprocess.run(
             [
@@ -63,17 +93,16 @@ matrix_run = "run_ATLAS_TTBAR_13TEV_HADR_DIF"
 input_dir = get_input_dir(matrix_run)
 
 copy_file(input_dir / "m_ttx_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR.pineappl.lz4")
+
 run_pineappl_write(
     input_dir / "m_ttx_NNLO.QCD.pineappl.lz4",
-    output_dir / "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR_INTEGRATED.pineappl.lz4",
-    "0-7"
+    output_dir / "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR_INTEGRATED.pineappl.lz4"
 )
 
 copy_file(input_dir / "y_ttx_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR.pineappl.lz4")
 run_pineappl_write(
     input_dir / "y_ttx_NNLO.QCD.pineappl.lz4",
-    output_dir / "ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR_INTEGRATED.pineappl.lz4",
-    "0-11"
+    output_dir / "ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR_INTEGRATED.pineappl.lz4"
 )
 
 # Process files for matrix run 2
@@ -103,47 +132,45 @@ run_pineappl_merge(
 #     "0-2"
 # )
 
-matrix_run = "run_ATLAS_TTBAR_8TEV_DIF"
-input_dir = get_input_dir(matrix_run)
+for exp in ["atlas", "cms"]:
 
-copy_file(input_dir / "atlas_2l_mttbar_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_8TEV_2L_DIF_MTTBAR.pineappl.lz4")
-run_pineappl_write(
-    input_dir / "atlas_2l_mttbar_NNLO.QCD.pineappl.lz4",
-    output_dir / "ATLAS_TTBAR_8TEV_2L_DIF_MTTBAR_INTEGRATED.pineappl.lz4",
-    "0-5"
-)
+    matrix_run = "run_ATLAS_TTBAR_8TEV_DIF"
+    input_dir = get_input_dir(matrix_run)
 
-copy_file(input_dir / "atlas_2l_yttbar_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_8TEV_2L_DIF_YTTBAR.pineappl.lz4")
-run_pineappl_write(
-    input_dir / "atlas_2l_yttbar_NNLO.QCD.pineappl.lz4",
-    output_dir / "ATLAS_TTBAR_8TEV_2L_DIF_YTTBAR_INTEGRATED.pineappl.lz4",
-    "0-4"
-)
+    copy_file(input_dir / f"{exp}_2l_mttbar_NNLO.QCD.pineappl.lz4", output_dir / f"{exp.upper()}_TTBAR_8TEV_2L_DIF_MTTBAR.pineappl.lz4")
+    run_pineappl_write(
+        input_dir / f"{exp}_2l_mttbar_NNLO.QCD.pineappl.lz4",
+        output_dir / f"{exp.upper()}_TTBAR_8TEV_2L_DIF_MTTBAR_INTEGRATED.pineappl.lz4"
+    )
 
-copy_file(input_dir / "atlas_lj_mttbar_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_MTTBAR.pineappl.lz4")
-run_pineappl_write(
-    input_dir / "atlas_lj_mttbar_NNLO.QCD.pineappl.lz4",
-    output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_MTTBAR_INTEGRATED.pineappl.lz4",
-    "0-6"
-)
+    copy_file(input_dir / f"{exp}_2l_yttbar_NNLO.QCD.pineappl.lz4", output_dir / f"{exp.upper()}_TTBAR_8TEV_2L_DIF_YTTBAR.pineappl.lz4")
+    run_pineappl_write(
+        input_dir / f"{exp}_2l_yttbar_NNLO.QCD.pineappl.lz4",
+        output_dir / f"{exp.upper()}_TTBAR_8TEV_2L_DIF_YTTBAR_INTEGRATED.pineappl.lz4"
+    )
 
-copy_file(input_dir / "atlas_lj_pTt_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_PTT.pineappl.lz4")
-run_pineappl_write(
-    input_dir / "atlas_lj_pTt_NNLO.QCD.pineappl.lz4",
-    output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_PTT_INTEGRATED.pineappl.lz4",
-    "0-7"
-)
+    copy_file(input_dir / f"{exp}_lj_mttbar_NNLO.QCD.pineappl.lz4", output_dir / f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_MTTBAR.pineappl.lz4")
+    run_pineappl_write(
+        input_dir / f"{exp}_lj_mttbar_NNLO.QCD.pineappl.lz4",
+        output_dir / f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_MTTBAR_INTEGRATED.pineappl.lz4"
+    )
 
-copy_file(input_dir / "atlas_lj_yt_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_YT.pineappl.lz4")
-run_pineappl_write(
-    input_dir / "atlas_lj_yt_NNLO.QCD.pineappl.lz4",
-    output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_YT_INTEGRATED.pineappl.lz4",
-    "0-4"
-)
+    copy_file(input_dir / f"{exp}_lj_pTt_NNLO.QCD.pineappl.lz4", output_dir / f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_PTT.pineappl.lz4")
+    run_pineappl_write(
+        input_dir / f"{exp}_lj_pTt_NNLO.QCD.pineappl.lz4",
+        output_dir / f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_PTT_INTEGRATED.pineappl.lz4"
+    )
 
-copy_file(input_dir / "atlas_lj_yttbar_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_YTTBAR.pineappl.lz4")
-run_pineappl_write(
-    input_dir / "atlas_lj_yttbar_NNLO.QCD.pineappl.lz4",
-    output_dir / "ATLAS_TTBAR_8TEV_LJ_DIF_YTTBAR_INTEGRATED.pineappl.lz4",
-    "0-4"
-)
+    copy_file(input_dir / f"{exp}_lj_yt_NNLO.QCD.pineappl.lz4", output_dir / f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_YT.pineappl.lz4")
+    run_pineappl_write(
+        input_dir / f"{exp}_lj_yt_NNLO.QCD.pineappl.lz4",
+        output_dir / f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_YT_INTEGRATED.pineappl.lz4"
+    )
+
+    copy_file(input_dir / f"{exp}_lj_yttbar_NNLO.QCD.pineappl.lz4", output_dir / f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_YTTBAR.pineappl.lz4")
+    run_pineappl_write(
+        input_dir / f"{exp}_lj_yttbar_NNLO.QCD.pineappl.lz4",
+        output_dir / f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_YTTBAR_INTEGRATED.pineappl.lz4"
+    )
+
+    copy_file(input_dir / "total_rate_NNLO.QCD.pineappl.lz4", output_dir / f"{exp.upper()}_TTBAR_8TEV_TOT_X-SEC.pineappl.lz4")
