@@ -8,7 +8,7 @@ matrix_result_dir = pathlib.Path("../../MATRIX/result")
 pineappl_dir = pathlib.Path("NNLO-run/PineAPPL_grids")
 
 # Define Matrix theory details
-theory = "40006000"
+theory = "40006001"
 output_dir = output_dir / theory  # Ensure output directory is scoped to the theory
 output_dir.mkdir(parents=True, exist_ok=True)
 # temp_dir = output_dir / "temp"
@@ -86,7 +86,6 @@ def run_pineappl_merge(output: pathlib.Path, *inputs: pathlib.Path):
         print(f"Error running pineappl merge: {e}")
         #raise
 
-# Process files for matrix run 1
 matrix_run = "run_ATLAS_TTBAR_13TEV_HADR_DIF"
 input_dir = get_input_dir(matrix_run)
 
@@ -103,7 +102,133 @@ run_pineappl_write(
     output_dir / "ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR_INTEGRATED.pineappl.lz4"
 )
 
-# Process files for matrix run 2
+matrix_run = "run_ATLAS_TTBAR_13TEV_LJ_DIF"
+input_dir = get_input_dir(matrix_run)
+
+# ATLAS
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR
+copy_file(input_dir / "atlas_mttbar_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR.pineappl.lz4")
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-INTEGRATED
+run_pineappl_write(
+    input_dir / "atlas_mttbar_NNLO.QCD.pineappl.lz4",
+    output_dir / "ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-INTEGRATED.pineappl.lz4"
+)
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_PTT
+copy_file(input_dir / "atlas_pTt_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_13TEV_LJ_DIF_PTT.pineappl.lz4")
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_PTT-INTEGRATED
+run_pineappl_write(
+    input_dir / "atlas_pTt_NNLO.QCD.pineappl.lz4",
+    output_dir / "ATLAS_TTBAR_13TEV_LJ_DIF_PTT-INTEGRATED.pineappl.lz4"
+)
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_YT
+copy_file(input_dir / "atlas_yt_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_13TEV_LJ_DIF_YT.pineappl.lz4")
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_YT-INTEGRATED
+run_pineappl_write(
+    input_dir / "atlas_yt_NNLO.QCD.pineappl.lz4",
+    output_dir / "ATLAS_TTBAR_13TEV_LJ_DIF_YT-INTEGRATED.pineappl.lz4"
+)
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR
+copy_file(input_dir / "atlas_yttbar_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR.pineappl.lz4")
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR-INTEGRATED
+run_pineappl_write(
+    input_dir / "atlas_yttbar_NNLO.QCD.pineappl.lz4",
+    output_dir / "ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR-INTEGRATED.pineappl.lz4"
+)
+
+# ATLAS_TTBAR_13TEV_TOT_X-SEC
+copy_file(input_dir / "total_rate_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_13TEV_TOT_X-SEC.pineappl.lz4")
+
+# CMS_TTBAR_13TEV_2L_DIF_MTTBAR
+copy_file(input_dir / "cms_2l_mttbar_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_13TEV_2L_DIF_MTTBAR.pineappl.lz4")
+
+# CMS_TTBAR_13TEV_2L_DIF_MTTBAR-INTEGRATED
+run_pineappl_write(
+    input_dir / "cms_2l_mttbar_NNLO.QCD.pineappl.lz4",
+    output_dir / "CMS_TTBAR_13TEV_2L_DIF_MTTBAR-INTEGRATED.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_2L_DIF_PTT
+copy_file(input_dir / "cms_2l_pTt_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_13TEV_2L_DIF_PTT.pineappl.lz4")
+
+# CMS_TTBAR_13TEV_2L_DIF_PTT-INTEGRATED
+run_pineappl_write(
+    input_dir / "cms_2l_pTt_NNLO.QCD.pineappl.lz4",
+    output_dir / "CMS_TTBAR_13TEV_2L_DIF_PTT-INTEGRATED.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_2L_DIF_YT
+copy_file(input_dir / "cms_2l_yt_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_13TEV_2L_DIF_YT.pineappl.lz4")
+
+# CMS_TTBAR_13TEV_2L_DIF_YT-INTEGRATED
+run_pineappl_write(
+    input_dir / "cms_2l_yt_NNLO.QCD.pineappl.lz4",
+    output_dir / "CMS_TTBAR_13TEV_2L_DIF_YT-INTEGRATED.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_2L_DIF_YTTBAR
+copy_file(input_dir / "cms_2l_yttbar_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_13TEV_2L_DIF_YTTBAR.pineappl.lz4")
+
+# CMS_TTBAR_13TEV_2L_DIF_YTTBAR-INTEGRATED
+run_pineappl_write(
+    input_dir / "cms_2l_yttbar_NNLO.QCD.pineappl.lz4",
+    output_dir / "CMS_TTBAR_13TEV_2L_DIF_YTTBAR-INTEGRATED.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_LJ_DIF_MTTBAR
+copy_file(input_dir / "cms_lj_mttbar_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR.pineappl.lz4")
+
+# CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-INTEGRATED
+run_pineappl_write(
+    input_dir / "cms_lj_mttbar_NNLO.QCD.pineappl.lz4",
+    output_dir / "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-INTEGRATED.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR
+copy_file(input_dir / "cms_lj_mttbar-yttbar_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR.pineappl.lz4")
+
+# CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR-INTEGRATED
+# TODO: how to integrate 2D dist
+
+# CMS_TTBAR_13TEV_LJ_DIF_PTT
+copy_file(input_dir / "cms_lj_pTt_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_13TEV_LJ_DIF_PTT.pineappl.lz4")
+
+
+# CMS_TTBAR_13TEV_LJ_DIF_PTT-INTEGRATED
+run_pineappl_write(
+    input_dir / "cms_lj_pTt_NNLO.QCD.pineappl.lz4",
+    output_dir / "CMS_TTBAR_13TEV_LJ_DIF_PTT-INTEGRATED.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_LJ_DIF_YT
+copy_file(input_dir / "cms_lj_yt_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_13TEV_LJ_DIF_YT.pineappl.lz4")
+
+# CMS_TTBAR_13TEV_LJ_DIF_YT-INTEGRATED
+run_pineappl_write(
+    input_dir / "cms_lj_yt_NNLO.QCD.pineappl.lz4",
+    output_dir / "CMS_TTBAR_13TEV_LJ_DIF_YT-INTEGRATED.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_LJ_DIF_YTTBAR
+copy_file(input_dir / "cms_lj_yttbar_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_13TEV_LJ_DIF_YTTBAR.pineappl.lz4")
+
+# CMS_TTBAR_13TEV_LJ_DIF_YTTBAR-INTEGRATED
+run_pineappl_write(
+    input_dir / "cms_lj_yttbar_NNLO.QCD.pineappl.lz4",
+    output_dir / "CMS_TTBAR_13TEV_LJ_DIF_YTTBAR-INTEGRATED.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_TOT_X-SEC
+copy_file(input_dir / "total_rate_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_13TEV_TOT_X-SEC.pineappl.lz4")
+
+
 matrix_run = "run_ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR"
 input_dir = get_input_dir(matrix_run)
 
