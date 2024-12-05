@@ -6,7 +6,7 @@ import numpy as np
 import pineappl
 from pineappl.grid import Grid
 
-theory_id = "40006001"
+theory_id = "40006000"
 
 
 class MatrixRun:
@@ -165,226 +165,183 @@ class MatrixRun:
                             output], check=True)
             input = output
 
-        import pdb;
-        pdb.set_trace()
 
 
-        for i in range(0, grid.bins()):
-            grid.bin_left(0)[i] = 0.0
-            grid.bin_right(0)[i] = 1.0
-            grid.bin_left(1)[i] = 0.0
-            grid.bin_right(1)[i] = 1.0
+matrix_run = MatrixRun("run_ATLAS_TTBAR_13TEV_HADR_DIF", theory_id=theory_id)
+matrix_run.integrate_1d(
+    "m_ttx_NNLO.QCD.pineappl.lz4",
+    "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR_INTEGRATED.pineappl.lz4",
+)
+matrix_run.rename_grid(
+    "m_ttx_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR.pineappl.lz4"
+)
 
-        bin_dims = grid.bin_dimensions()
-        df = pd.DataFrame({})
-        for bin_dim in range(bin_dims):
-            df = pd.concat(
-                [
-                    df,
-                    pd.DataFrame(
-                        {
-                            f"dim {bin_dim} left": grid.bin_left(bin_dim),
-                            f"dim {bin_dim} right": grid.bin_right(bin_dim),
-                        }
-                    ),
-                ],
-                axis=0,
-            )
-        import pdb;
-        pdb.set_trace()
+matrix_run.integrate_1d(
+    "m_ttx_NNLO.QCD.pineappl.lz4",
+    "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR_INTEGRATED.pineappl.lz4",
+)
 
-        # for i, n_bins in {1: 4, 2:4, 3:3}.items():
-        #     self.integrate_1d(
-        #         f"dd{i}_NNLO.QCD.pineappl.lz4",
-        #         temp_dir / f"dd{i}_NNLO.QCD_INTEGRATED.pineappl.lz4",
-        #         f"0-{n_bins-1}"
-        #     )
-        #
-        # run_pineappl_merge("ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR_INTEGRATED.pineappl.lz4", *list(temp_dir.glob("*.lz4")))
-        # matrix_run.integrate_1d(
-        #     "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR_INTEGRATED.pineappl.lz4",
-        #     "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR_INTEGRATED_test.pineappl.lz4",
-        #     "0-2"
-        # )
-        #
-        # self.integrate_1d()
+matrix_run.rename_grid(
+    "y_ttx_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR.pineappl.lz4"
+)
+matrix_run.integrate_1d(
+    "y_ttx_NNLO.QCD.pineappl.lz4",
+    "ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR_INTEGRATED.pineappl.lz4",
+)
+
+matrix_run = MatrixRun("run_ATLAS_TTBAR_13TEV_LJ_DIF", theory_id=theory_id)
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR
+matrix_run.rename_grid(
+    "atlas_mttbar_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR.pineappl.lz4"
+)
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-INTEGRATED
+matrix_run.integrate_1d(
+    "atlas_mttbar_NNLO.QCD.pineappl.lz4",
+    "ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-INTEGRATED.pineappl.lz4",
+)
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_PTT
+matrix_run.rename_grid(
+    "atlas_pTt_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_LJ_DIF_PTT.pineappl.lz4"
+)
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_PTT-INTEGRATED
+matrix_run.integrate_1d(
+    "atlas_pTt_NNLO.QCD.pineappl.lz4",
+    "ATLAS_TTBAR_13TEV_LJ_DIF_PTT-INTEGRATED.pineappl.lz4",
+)
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_YT
+matrix_run.rename_grid(
+    "atlas_yt_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_LJ_DIF_YT.pineappl.lz4"
+)
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_YT-INTEGRATED
+matrix_run.integrate_1d(
+    "atlas_yt_NNLO.QCD.pineappl.lz4",
+    "ATLAS_TTBAR_13TEV_LJ_DIF_YT-INTEGRATED.pineappl.lz4",
+)
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR
+matrix_run.rename_grid(
+    "atlas_yttbar_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR.pineappl.lz4"
+)
+
+# ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR-INTEGRATED
+matrix_run.integrate_1d(
+    "atlas_yttbar_NNLO.QCD.pineappl.lz4",
+    "ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR-INTEGRATED.pineappl.lz4",
+)
+
+# ATLAS_TTBAR_13TEV_TOT_X-SEC
+matrix_run.rename_grid(
+    "total_rate_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_TOT_X-SEC.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_2L_DIF_MTTBAR
+matrix_run.rename_grid(
+    "cms_2l_mttbar_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_2L_DIF_MTTBAR.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_2L_DIF_MTTBAR-INTEGRATED
+matrix_run.integrate_1d(
+    "cms_2l_mttbar_NNLO.QCD.pineappl.lz4",
+    "CMS_TTBAR_13TEV_2L_DIF_MTTBAR-INTEGRATED.pineappl.lz4",
+)
+
+# CMS_TTBAR_13TEV_2L_DIF_PTT
+matrix_run.rename_grid(
+    "cms_2l_pTt_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_2L_DIF_PTT.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_2L_DIF_PTT-INTEGRATED
+matrix_run.integrate_1d(
+    "cms_2l_pTt_NNLO.QCD.pineappl.lz4",
+    "CMS_TTBAR_13TEV_2L_DIF_PTT-INTEGRATED.pineappl.lz4",
+)
+
+# CMS_TTBAR_13TEV_2L_DIF_YT
+matrix_run.rename_grid(
+    "cms_2l_yt_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_2L_DIF_YT.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_2L_DIF_YT-INTEGRATED
+matrix_run.integrate_1d(
+    "cms_2l_yt_NNLO.QCD.pineappl.lz4",
+    "CMS_TTBAR_13TEV_2L_DIF_YT-INTEGRATED.pineappl.lz4",
+)
+
+# CMS_TTBAR_13TEV_2L_DIF_YTTBAR
+matrix_run.rename_grid(
+    "cms_2l_yttbar_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_2L_DIF_YTTBAR.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_2L_DIF_YTTBAR-INTEGRATED
+matrix_run.integrate_1d(
+    "cms_2l_yttbar_NNLO.QCD.pineappl.lz4",
+    "CMS_TTBAR_13TEV_2L_DIF_YTTBAR-INTEGRATED.pineappl.lz4",
+)
+
+# CMS_TTBAR_13TEV_LJ_DIF_MTTBAR
+matrix_run.rename_grid(
+    "cms_lj_mttbar_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-INTEGRATED
+matrix_run.integrate_1d(
+    "cms_lj_mttbar_NNLO.QCD.pineappl.lz4",
+    "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-INTEGRATED.pineappl.lz4",
+)
+
+# CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR
+matrix_run.rename_grid(
+    "cms_lj_mttbar-yttbar_NNLO.QCD.pineappl.lz4",
+    "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR.pineappl.lz4",
+)
+
+# CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR-INTEGRATED
+# TODO: how to integrate 2D dist
+
+# CMS_TTBAR_13TEV_LJ_DIF_PTT
+matrix_run.rename_grid(
+    "cms_lj_pTt_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_LJ_DIF_PTT.pineappl.lz4"
+)
 
 
-# matrix_run = MatrixRun("run_ATLAS_TTBAR_13TEV_HADR_DIF", theory_id=theory_id)
-# matrix_run.integrate_1d(
-#     "m_ttx_NNLO.QCD.pineappl.lz4",
-#     "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR_INTEGRATED.pineappl.lz4",
-# )
-# matrix_run.rename_grid(
-#     "m_ttx_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR.pineappl.lz4"
-# )
-#
-# matrix_run.integrate_1d(
-#     "m_ttx_NNLO.QCD.pineappl.lz4",
-#     "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR_INTEGRATED.pineappl.lz4",
-# )
-#
-# matrix_run.rename_grid(
-#     "y_ttx_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR.pineappl.lz4"
-# )
-# matrix_run.integrate_1d(
-#     "y_ttx_NNLO.QCD.pineappl.lz4",
-#     "ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR_INTEGRATED.pineappl.lz4",
-# )
-#
-# matrix_run = MatrixRun("run_ATLAS_TTBAR_13TEV_LJ_DIF", theory_id=theory_id)
-#
-# # ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR
-# matrix_run.rename_grid(
-#     "atlas_mttbar_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR.pineappl.lz4"
-# )
-#
-# # ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-INTEGRATED
-# matrix_run.integrate_1d(
-#     "atlas_mttbar_NNLO.QCD.pineappl.lz4",
-#     "ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-INTEGRATED.pineappl.lz4",
-# )
-#
-# # ATLAS_TTBAR_13TEV_LJ_DIF_PTT
-# matrix_run.rename_grid(
-#     "atlas_pTt_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_LJ_DIF_PTT.pineappl.lz4"
-# )
-#
-# # ATLAS_TTBAR_13TEV_LJ_DIF_PTT-INTEGRATED
-# matrix_run.integrate_1d(
-#     "atlas_pTt_NNLO.QCD.pineappl.lz4",
-#     "ATLAS_TTBAR_13TEV_LJ_DIF_PTT-INTEGRATED.pineappl.lz4",
-# )
-#
-# # ATLAS_TTBAR_13TEV_LJ_DIF_YT
-# matrix_run.rename_grid(
-#     "atlas_yt_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_LJ_DIF_YT.pineappl.lz4"
-# )
-#
-# # ATLAS_TTBAR_13TEV_LJ_DIF_YT-INTEGRATED
-# matrix_run.integrate_1d(
-#     "atlas_yt_NNLO.QCD.pineappl.lz4",
-#     "ATLAS_TTBAR_13TEV_LJ_DIF_YT-INTEGRATED.pineappl.lz4",
-# )
-#
-# # ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR
-# matrix_run.rename_grid(
-#     "atlas_yttbar_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR.pineappl.lz4"
-# )
-#
-# # ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR-INTEGRATED
-# matrix_run.integrate_1d(
-#     "atlas_yttbar_NNLO.QCD.pineappl.lz4",
-#     "ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR-INTEGRATED.pineappl.lz4",
-# )
-#
-# # ATLAS_TTBAR_13TEV_TOT_X-SEC
-# matrix_run.rename_grid(
-#     "total_rate_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_TOT_X-SEC.pineappl.lz4"
-# )
-#
-# # CMS_TTBAR_13TEV_2L_DIF_MTTBAR
-# matrix_run.rename_grid(
-#     "cms_2l_mttbar_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_2L_DIF_MTTBAR.pineappl.lz4"
-# )
-#
-# # CMS_TTBAR_13TEV_2L_DIF_MTTBAR-INTEGRATED
-# matrix_run.integrate_1d(
-#     "cms_2l_mttbar_NNLO.QCD.pineappl.lz4",
-#     "CMS_TTBAR_13TEV_2L_DIF_MTTBAR-INTEGRATED.pineappl.lz4",
-# )
-#
-# # CMS_TTBAR_13TEV_2L_DIF_PTT
-# matrix_run.rename_grid(
-#     "cms_2l_pTt_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_2L_DIF_PTT.pineappl.lz4"
-# )
-#
-# # CMS_TTBAR_13TEV_2L_DIF_PTT-INTEGRATED
-# matrix_run.integrate_1d(
-#     "cms_2l_pTt_NNLO.QCD.pineappl.lz4",
-#     "CMS_TTBAR_13TEV_2L_DIF_PTT-INTEGRATED.pineappl.lz4",
-# )
-#
-# # CMS_TTBAR_13TEV_2L_DIF_YT
-# matrix_run.rename_grid(
-#     "cms_2l_yt_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_2L_DIF_YT.pineappl.lz4"
-# )
-#
-# # CMS_TTBAR_13TEV_2L_DIF_YT-INTEGRATED
-# matrix_run.integrate_1d(
-#     "cms_2l_yt_NNLO.QCD.pineappl.lz4",
-#     "CMS_TTBAR_13TEV_2L_DIF_YT-INTEGRATED.pineappl.lz4",
-# )
-#
-# # CMS_TTBAR_13TEV_2L_DIF_YTTBAR
-# matrix_run.rename_grid(
-#     "cms_2l_yttbar_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_2L_DIF_YTTBAR.pineappl.lz4"
-# )
-#
-# # CMS_TTBAR_13TEV_2L_DIF_YTTBAR-INTEGRATED
-# matrix_run.integrate_1d(
-#     "cms_2l_yttbar_NNLO.QCD.pineappl.lz4",
-#     "CMS_TTBAR_13TEV_2L_DIF_YTTBAR-INTEGRATED.pineappl.lz4",
-# )
-#
-# # CMS_TTBAR_13TEV_LJ_DIF_MTTBAR
-# matrix_run.rename_grid(
-#     "cms_lj_mttbar_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR.pineappl.lz4"
-# )
-#
-# # CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-INTEGRATED
-# matrix_run.integrate_1d(
-#     "cms_lj_mttbar_NNLO.QCD.pineappl.lz4",
-#     "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-INTEGRATED.pineappl.lz4",
-# )
-#
-# # CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR
-# matrix_run.rename_grid(
-#     "cms_lj_mttbar-yttbar_NNLO.QCD.pineappl.lz4",
-#     "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR.pineappl.lz4",
-# )
-#
-# # CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR-INTEGRATED
-# # TODO: how to integrate 2D dist
-#
-# # CMS_TTBAR_13TEV_LJ_DIF_PTT
-# matrix_run.rename_grid(
-#     "cms_lj_pTt_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_LJ_DIF_PTT.pineappl.lz4"
-# )
-#
-#
-# # CMS_TTBAR_13TEV_LJ_DIF_PTT-INTEGRATED
-# matrix_run.integrate_1d(
-#     "cms_lj_pTt_NNLO.QCD.pineappl.lz4",
-#     "CMS_TTBAR_13TEV_LJ_DIF_PTT-INTEGRATED.pineappl.lz4",
-# )
-#
-# # CMS_TTBAR_13TEV_LJ_DIF_YT
-# matrix_run.rename_grid(
-#     "cms_lj_yt_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_LJ_DIF_YT.pineappl.lz4"
-# )
-#
-# # CMS_TTBAR_13TEV_LJ_DIF_YT-INTEGRATED
-# matrix_run.integrate_1d(
-#     "cms_lj_yt_NNLO.QCD.pineappl.lz4",
-#     "CMS_TTBAR_13TEV_LJ_DIF_YT-INTEGRATED.pineappl.lz4",
-# )
-#
-# # CMS_TTBAR_13TEV_LJ_DIF_YTTBAR
-# matrix_run.rename_grid(
-#     "cms_lj_yttbar_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_LJ_DIF_YTTBAR.pineappl.lz4"
-# )
-#
-# # CMS_TTBAR_13TEV_LJ_DIF_YTTBAR-INTEGRATED
-# matrix_run.integrate_1d(
-#     "cms_lj_yttbar_NNLO.QCD.pineappl.lz4",
-#     "CMS_TTBAR_13TEV_LJ_DIF_YTTBAR-INTEGRATED.pineappl.lz4",
-# )
-#
-# # CMS_TTBAR_13TEV_TOT_X-SEC
-# matrix_run.rename_grid(
-#     "total_rate_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_TOT_X-SEC.pineappl.lz4"
-# )
+# CMS_TTBAR_13TEV_LJ_DIF_PTT-INTEGRATED
+matrix_run.integrate_1d(
+    "cms_lj_pTt_NNLO.QCD.pineappl.lz4",
+    "CMS_TTBAR_13TEV_LJ_DIF_PTT-INTEGRATED.pineappl.lz4",
+)
+
+# CMS_TTBAR_13TEV_LJ_DIF_YT
+matrix_run.rename_grid(
+    "cms_lj_yt_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_LJ_DIF_YT.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_LJ_DIF_YT-INTEGRATED
+matrix_run.integrate_1d(
+    "cms_lj_yt_NNLO.QCD.pineappl.lz4",
+    "CMS_TTBAR_13TEV_LJ_DIF_YT-INTEGRATED.pineappl.lz4",
+)
+
+# CMS_TTBAR_13TEV_LJ_DIF_YTTBAR
+matrix_run.rename_grid(
+    "cms_lj_yttbar_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_LJ_DIF_YTTBAR.pineappl.lz4"
+)
+
+# CMS_TTBAR_13TEV_LJ_DIF_YTTBAR-INTEGRATED
+matrix_run.integrate_1d(
+    "cms_lj_yttbar_NNLO.QCD.pineappl.lz4",
+    "CMS_TTBAR_13TEV_LJ_DIF_YTTBAR-INTEGRATED.pineappl.lz4",
+)
+
+# CMS_TTBAR_13TEV_TOT_X-SEC
+matrix_run.rename_grid(
+    "total_rate_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_TOT_X-SEC.pineappl.lz4"
+)
 
 
 matrix_run = MatrixRun(
