@@ -105,8 +105,6 @@ run_pineappl_write(
 matrix_run = "run_ATLAS_TTBAR_13TEV_LJ_DIF"
 input_dir = get_input_dir(matrix_run)
 
-# ATLAS
-
 # ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR
 copy_file(input_dir / "atlas_mttbar_NNLO.QCD.pineappl.lz4", output_dir / "ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR.pineappl.lz4")
 
@@ -303,3 +301,25 @@ for exp in ["atlas", "cms"]:
     matrix_run = "run_ATLAS_TTBAR_7TEV_TOT_X-SEC"
     input_dir = get_input_dir(matrix_run)
     copy_file(input_dir / "total_rate_NNLO.QCD.pineappl.lz4", output_dir / f"{exp.upper()}_TTBAR_7TEV_TOT_X-SEC.pineappl.lz4")
+
+matrix_run = "run_CMS_TTBAR_5TEV_TOT_X-SEC"
+input_dir = get_input_dir(matrix_run)
+copy_file(input_dir / "total_rate_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_5TEV_TOT_X-SEC.pineappl.lz4")
+
+matrix_run = "run_CMS_TTBAR_8TEV_2L_DIF"
+input_dir = get_input_dir(matrix_run)
+
+# CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT
+copy_file(input_dir / "mttbar-yt_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT.pineappl.lz4")
+
+# CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT-INTEGRATED
+
+# CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR-INTEGRATED
+
+# CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR
+copy_file(input_dir / "mttbar-yttbar_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR.pineappl.lz4")
+
+# CMS_TTBAR_8TEV_2L_DIF_PTT-YT-INTEGRATED
+
+# CMS_TTBAR_8TEV_2L_DIF_PTT-YT
+copy_file(input_dir / "pTt-yt_NNLO.QCD.pineappl.lz4", output_dir / "CMS_TTBAR_8TEV_2L_DIF_PTT-YT .pineappl.lz4")
