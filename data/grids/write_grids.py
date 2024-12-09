@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import pathlib
 import subprocess
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 import pineappl
 from pineappl.grid import Grid
 
-theory_id = "40006000"
+theory_id = "40006001"
 
 
 class MatrixRun:
@@ -94,7 +95,10 @@ class MatrixRun:
     def combine_grids(self, output_grid, input_grids):
 
         input = [self.input_dir / grid for grid in input_grids]
-        subprocess.run(["pineappl", "merge", self.output_dir / output_grid, *input], check=True)
+        subprocess.run(
+            ["pineappl", "merge", self.output_dir / output_grid, *input], check=True
+        )
+        return self.output_dir / output_grid
 
     def integrate_1d(self, input_grid, output_grid):
         """
@@ -114,7 +118,9 @@ class MatrixRun:
         None
         """
 
-        merged_grid = self.merge_bins(self.input_dir / input_grid, self.output_dir / f"temp_{output_grid}")
+        merged_grid = self.merge_bins(
+            self.input_dir / input_grid, self.output_dir / f"temp_{output_grid}"
+        )
         grid = Grid.read(f"{merged_grid}")
         bin_dims = grid.bin_dimensions()
 
@@ -148,29 +154,51 @@ class MatrixRun:
 
         return [(r[0], r[-1]) for r in ranges]
 
+    @staticmethod
+    def integrate_2d(input_grid, output_grid):
 
-    def integrate_2d(self, input_grid, output_grid):
+        grid = Grid.read(f"{input_grid}")
+        n_bins = grid.bins()
 
+        output_temp = pathlib.Path(
+            str(output_grid).replace(".pineappl.lz4", "_temp.pineappl.lz4")
+        )
 
+        # remap all bins to 1DBL and merge them
+        subprocess.run(
+            [
+                "pineappl",
+                "write",
+                "--remap",
+                ",".join([str(i) for i in range(n_bins + 1)]),
+                "--merge-bins",
+                f"0-{n_bins - 1}",
+                input_grid,
+                output_temp,
+            ],
+            check=True,
+        )
 
-        grid = Grid.read(self.output_dir / f"{input_grid}")
+        # set the norm to 1
+        subprocess.run(
+            [
+                "pineappl",
+                "write",
+                "--remap",
+                "0,1",
+                output_temp,
+                output_grid,
+            ]
+        )
 
-        bin_ranges = self.find_ranges(grid.bin_left(0))
-
-        input = self.output_dir / f"{input_grid}"
-        for i, range in enumerate(bin_ranges):
-            output = self.output_dir / f"temp_{i}_{output_grid}"
-            n_bins = range[1] - range[0] + 1
-            subprocess.run(["pineappl", "write", "--merge-bins", f"{i}-{i + n_bins - 1}", input,
-                            output], check=True)
-            input = output
-
+        # remove the temporary file
+        subprocess.run(["rm", output_temp], check=True)
 
 
 matrix_run = MatrixRun("run_ATLAS_TTBAR_13TEV_HADR_DIF", theory_id=theory_id)
 matrix_run.integrate_1d(
     "m_ttx_NNLO.QCD.pineappl.lz4",
-    "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR_INTEGRATED.pineappl.lz4",
+    "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-INTEGRATED.pineappl.lz4",
 )
 matrix_run.rename_grid(
     "m_ttx_NNLO.QCD.pineappl.lz4", "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR.pineappl.lz4"
@@ -178,7 +206,7 @@ matrix_run.rename_grid(
 
 matrix_run.integrate_1d(
     "m_ttx_NNLO.QCD.pineappl.lz4",
-    "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR_INTEGRATED.pineappl.lz4",
+    "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-INTEGRATED.pineappl.lz4",
 )
 
 matrix_run.rename_grid(
@@ -186,7 +214,7 @@ matrix_run.rename_grid(
 )
 matrix_run.integrate_1d(
     "y_ttx_NNLO.QCD.pineappl.lz4",
-    "ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR_INTEGRATED.pineappl.lz4",
+    "ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR-INTEGRATED.pineappl.lz4",
 )
 
 matrix_run = MatrixRun("run_ATLAS_TTBAR_13TEV_LJ_DIF", theory_id=theory_id)
@@ -302,13 +330,17 @@ matrix_run.rename_grid(
 )
 
 # CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR-INTEGRATED
-# TODO: how to integrate 2D dist
+matrix_run.integrate_2d(
+    matrix_run.output_dir / "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR.pineappl.lz4",
+    matrix_run.output_dir
+    / "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR-INTEGRATED.pineappl.lz4",
+)
+
 
 # CMS_TTBAR_13TEV_LJ_DIF_PTT
 matrix_run.rename_grid(
     "cms_lj_pTt_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_13TEV_LJ_DIF_PTT.pineappl.lz4"
 )
-
 
 # CMS_TTBAR_13TEV_LJ_DIF_PTT-INTEGRATED
 matrix_run.integrate_1d(
@@ -348,30 +380,21 @@ matrix_run = MatrixRun(
     "run_ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR", theory_id=theory_id
 )
 
-matrix_run.combine_grids("ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR.pineappl.lz4",
-        input_grids=["dd1_NNLO.QCD.pineappl.lz4",
+output_combined = matrix_run.combine_grids(
+    "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR.pineappl.lz4",
+    input_grids=[
+        "dd1_NNLO.QCD.pineappl.lz4",
         "dd2_NNLO.QCD.pineappl.lz4",
-        "dd3_NNLO.QCD.pineappl.lz4"])
+        "dd3_NNLO.QCD.pineappl.lz4",
+    ],
+)
 
-matrix_run.integrate_2d("ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR.pineappl.lz4", "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR_INTEGRATED.pineappl.lz4")
+matrix_run.integrate_2d(
+    output_combined,
+    matrix_run.output_dir
+    / "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR-INTEGRATED.pineappl.lz4",
+)
 
-
-
-# TODO: how to integrate 2D dist?
-
-# for i, n_bins in {1: 4, 2:4, 3:3}.items():
-#     matrix_run.integrate_1d(
-#         f"dd{i}_NNLO.QCD.pineappl.lz4",
-#         temp_dir / f"dd{i}_NNLO.QCD_INTEGRATED.pineappl.lz4",
-#         f"0-{n_bins-1}"
-#     )
-#
-# run_pineappl_merge("ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR_INTEGRATED.pineappl.lz4", *list(temp_dir.glob("*.lz4")))
-# matrix_run.integrate_1d(
-#     "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR_INTEGRATED.pineappl.lz4",
-#     "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR_INTEGRATED_test.pineappl.lz4",
-#     "0-2"
-# )
 
 for exp in ["atlas", "cms"]:
 
@@ -381,9 +404,10 @@ for exp in ["atlas", "cms"]:
         f"{exp}_2l_mttbar_NNLO.QCD.pineappl.lz4",
         f"{exp.upper()}_TTBAR_8TEV_2L_DIF_MTTBAR.pineappl.lz4",
     )
+
     matrix_run.integrate_1d(
         f"{exp}_2l_mttbar_NNLO.QCD.pineappl.lz4",
-        f"{exp.upper()}_TTBAR_8TEV_2L_DIF_MTTBAR_INTEGRATED.pineappl.lz4",
+        f"{exp.upper()}_TTBAR_8TEV_2L_DIF_MTTBAR-INTEGRATED.pineappl.lz4",
     )
 
     matrix_run.rename_grid(
@@ -392,7 +416,7 @@ for exp in ["atlas", "cms"]:
     )
     matrix_run.integrate_1d(
         f"{exp}_2l_yttbar_NNLO.QCD.pineappl.lz4",
-        f"{exp.upper()}_TTBAR_8TEV_2L_DIF_YTTBAR_INTEGRATED.pineappl.lz4",
+        f"{exp.upper()}_TTBAR_8TEV_2L_DIF_YTTBAR-INTEGRATED.pineappl.lz4",
     )
 
     matrix_run.rename_grid(
@@ -401,7 +425,7 @@ for exp in ["atlas", "cms"]:
     )
     matrix_run.integrate_1d(
         f"{exp}_lj_mttbar_NNLO.QCD.pineappl.lz4",
-        f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_MTTBAR_INTEGRATED.pineappl.lz4",
+        f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_MTTBAR-INTEGRATED.pineappl.lz4",
     )
 
     matrix_run.rename_grid(
@@ -410,7 +434,7 @@ for exp in ["atlas", "cms"]:
     )
     matrix_run.integrate_1d(
         f"{exp}_lj_pTt_NNLO.QCD.pineappl.lz4",
-        f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_PTT_INTEGRATED.pineappl.lz4",
+        f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_PTT-INTEGRATED.pineappl.lz4",
     )
 
     matrix_run.rename_grid(
@@ -419,7 +443,7 @@ for exp in ["atlas", "cms"]:
     )
     matrix_run.integrate_1d(
         f"{exp}_lj_yt_NNLO.QCD.pineappl.lz4",
-        f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_YT_INTEGRATED.pineappl.lz4",
+        f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_YT-INTEGRATED.pineappl.lz4",
     )
 
     matrix_run.rename_grid(
@@ -428,7 +452,7 @@ for exp in ["atlas", "cms"]:
     )
     matrix_run.integrate_1d(
         f"{exp}_lj_yttbar_NNLO.QCD.pineappl.lz4",
-        f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_YTTBAR_INTEGRATED.pineappl.lz4",
+        f"{exp.upper()}_TTBAR_8TEV_LJ_DIF_YTTBAR-INTEGRATED.pineappl.lz4",
     )
 
     matrix_run.rename_grid(
@@ -458,8 +482,10 @@ matrix_run.rename_grid(
 )
 
 # CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT-INTEGRATED
-
-# CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR-INTEGRATED
+matrix_run.integrate_2d(
+    matrix_run.output_dir / "CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT.pineappl.lz4",
+    matrix_run.output_dir / "CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT-INTEGRATED.pineappl.lz4",
+)
 
 # CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR
 matrix_run.rename_grid(
@@ -467,9 +493,21 @@ matrix_run.rename_grid(
     "CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR.pineappl.lz4",
 )
 
-# CMS_TTBAR_8TEV_2L_DIF_PTT-YT-INTEGRATED
+# CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR-INTEGRATED
+matrix_run.integrate_2d(
+    matrix_run.output_dir / "CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR.pineappl.lz4",
+    matrix_run.output_dir
+    / "CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR-INTEGRATED.pineappl.lz4",
+)
+
 
 # CMS_TTBAR_8TEV_2L_DIF_PTT-YT
 matrix_run.rename_grid(
-    "pTt-yt_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_8TEV_2L_DIF_PTT-YT .pineappl.lz4"
+    "pTt-yt_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_8TEV_2L_DIF_PTT-YT.pineappl.lz4"
+)
+
+# CMS_TTBAR_8TEV_2L_DIF_PTT-YT-INTEGRATED
+matrix_run.integrate_2d(
+    matrix_run.output_dir / "CMS_TTBAR_8TEV_2L_DIF_PTT-YT.pineappl.lz4",
+    matrix_run.output_dir / "CMS_TTBAR_8TEV_2L_DIF_PTT-YT-INTEGRATED.pineappl.lz4",
 )
