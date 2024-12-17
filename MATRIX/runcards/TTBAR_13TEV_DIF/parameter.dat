@@ -23,9 +23,7 @@ enhance_tails    =  1          #  switch to improve statistics in tail of distri
 #----------------\
 # Scale settings |
 #----------------/
-scale_ren         =  172.5     #  renormalization (muR) scale
-scale_fact        =  172.5     #  factorization (muF) scale
-dynamic_scale     =  70         #  dynamic ren./fac. scale
+dynamic_scale     =  11         #  dynamic ren./fac. scale
                                #  0: fixed scale above
                                #  1: invariant mass (Q) of system (of the colourless final states)
                                #  2: transverse mass (mT^2=Q^2+pT^2) of system (of the colourless final states)
@@ -97,7 +95,7 @@ n_observed_max jet = 99        #  maximal number of observed jets (with cuts abo
 #-----------------\
 # MATRIX behavior |
 #-----------------/
-max_time_per_job = 30          #  very rough time(hours) one main run job shall take (default: 24h)
+max_time_per_job = 12          #  very rough time(hours) one main run job shall take (default: 24h)
                                #  unreliable when < 1h, use as tuning parameter for degree of parallelization
                                #  note: becomes ineffective when job number > max_nr_parallel_jobs
                                #        which is set in MATRIX_configuration file

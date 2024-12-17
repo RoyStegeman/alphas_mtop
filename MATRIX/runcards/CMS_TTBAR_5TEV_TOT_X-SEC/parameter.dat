@@ -23,9 +23,7 @@ enhance_tails    =  0          #  switch to improve statistics in tail of distri
 #----------------\
 # Scale settings |
 #----------------/
-scale_ren         =  172.5     #  renormalization (muR) scale
-scale_fact        =  172.5     #  factorization (muF) scale
-dynamic_scale     =  70         #  dynamic ren./fac. scale
+dynamic_scale     =  11         #  dynamic ren./fac. scale
                                #  0: fixed scale above
                                #  1: invariant mass (Q) of system (of the colourless final states)
                                #  2: transverse mass (mT^2=Q^2+pT^2) of system (of the colourless final states)
@@ -54,7 +52,7 @@ NLO_subtraction_method = 1     #  switch to use (2) qT subtraction (1) Catani-Se
 run_NNLO_QCD       =  1        #  switch for NNLO QCD cross section (1) on; (0) off
 LHAPDF_NNLO        =  NNPDF40_nnlo_as_01180  #  NNLO LHAPDF set
 PDFsubset_NNLO     =  0        #  member of NNLO PDF set
-precision_NNLO_QCD =  5.e-4    #  precision of NNLO QCD cross section
+precision_NNLO_QCD =  1.e-3    #  precision of NNLO QCD cross section
 switch_qT_accuracy =  0        #  switch to improve qT-subtraction accuracy (slower numerical convergence)
                                #  0: lowest value of r_cut = 0.0015 varied up to 0.01 (default)
                                #  1: lowest value of r_cut = 0.0005 varied up to 0.01
