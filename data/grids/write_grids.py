@@ -7,7 +7,7 @@ import pandas as pd
 import pineappl
 from pineappl.grid import Grid
 
-theory_id = "40006001"
+theory_id = "40006002"
 
 
 class MatrixRun:
@@ -15,7 +15,7 @@ class MatrixRun:
 
         self.matrix_run = matrix_run
         self.theory_id = theory_id
-        self.matrix_result_dir = pathlib.Path("../../MATRIX/result")
+        self.matrix_result_dir = pathlib.Path("../../MATRIX/result_fixed_scale")
         self.pineappl_dir = pathlib.Path("NNLO-run/PineAPPL_grids")
         self.output_dir = pathlib.Path(self.theory_id)
         self.input_dir = self.get_input_dir()
@@ -217,7 +217,7 @@ matrix_run.integrate_1d(
     "ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR-INTEGRATED.pineappl.lz4",
 )
 
-matrix_run = MatrixRun("run_ATLAS_TTBAR_13TEV_LJ_DIF", theory_id=theory_id)
+matrix_run = MatrixRun("run_TTBAR_13TEV_DIF", theory_id=theory_id)
 
 # ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR
 matrix_run.rename_grid(
@@ -398,7 +398,7 @@ matrix_run.integrate_2d(
 
 for exp in ["atlas", "cms"]:
 
-    matrix_run = MatrixRun("run_ATLAS_TTBAR_8TEV_DIF", theory_id=theory_id)
+    matrix_run = MatrixRun("run_TTBAR_8TEV_DIF", theory_id=theory_id)
 
     matrix_run.rename_grid(
         f"{exp}_2l_mttbar_NNLO.QCD.pineappl.lz4",
@@ -462,7 +462,7 @@ for exp in ["atlas", "cms"]:
 
 for exp in ["atlas", "cms"]:
 
-    matrix_run = MatrixRun("run_ATLAS_TTBAR_7TEV_TOT_X-SEC", theory_id=theory_id)
+    matrix_run = MatrixRun("run_TTBAR_7TEV_TOT_X-SEC", theory_id=theory_id)
     matrix_run.rename_grid(
         "total_rate_NNLO.QCD.pineappl.lz4",
         f"{exp.upper()}_TTBAR_7TEV_TOT_X-SEC.pineappl.lz4",
@@ -473,7 +473,7 @@ matrix_run.rename_grid(
     "total_rate_NNLO.QCD.pineappl.lz4", "CMS_TTBAR_5TEV_TOT_X-SEC.pineappl.lz4"
 )
 
-matrix_run = MatrixRun("run_CMS_TTBAR_8TEV_2L_DIF", theory_id=theory_id)
+matrix_run = MatrixRun("run_TTBAR_8TEV_DIF", theory_id=theory_id)
 
 
 # CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT
