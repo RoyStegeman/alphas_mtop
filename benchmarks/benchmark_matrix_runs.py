@@ -124,6 +124,7 @@ def plot_combined(df_nnlo_1, df_nnlo_2, df_nlo_1, df_nlo_2, df_lo_1, df_lo_2):
             ax_ratio.set_ylim(0.96, 1.04)
         else:
             ax_ratio.scatter(x_data, ratio, color='k')
+            ax_ratio.scatter(x_data, np.ones_like(ratio), color='r')
             deltay_ratio = 1.1 * np.max(np.abs(ratio - 1))
             ax_ratio.set_ylim(1 - deltay_ratio, 1 + deltay_ratio)
         ax_ratio.axhline(1, color='k', linestyle='dashed')
@@ -138,6 +139,6 @@ def plot_combined(df_nnlo_1, df_nnlo_2, df_nlo_1, df_nlo_2, df_lo_1, df_lo_2):
 
 
 fig_combined = plot_combined(df_jaco_nnlo, df_tanishq_nnlo, df_jaco_nlo, df_tanishq_nlo, df_jaco_lo, df_tanishq_lo)
-fig_combined.savefig("comparison_all_orders.pdf")
+fig_combined.savefig("plots/comparison_all_orders.pdf")
 
 
