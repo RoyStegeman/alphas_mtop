@@ -1,0 +1,132 @@
+#############################
+# MATRIX configuration file #
+#############################
+# This file contains all parameters to configure MATRIX
+# In the run_folders this is the link to the central configuration file
+# in MATRIX/config/; you can replace the link by a copy to have individual 
+# configurations for the different processes
+
+# Editor to be used to edit input files from MATRIX shell
+# (default: use the one specified under environmental variable EDITOR)
+default_editor = nano  # eg, emacs, vi, nano, ...
+
+# runmode of MATRIX: 0 -- multicore (default)
+#                    1 -- cluster
+mode = 1
+
+###=================###
+## cluster parameter ##
+###=================###
+# Name of cluster currently supported: 
+#   slurm, LSF (eg, lxplus), HTcondor, condor_lxplus (special version working on lxplus HTCondor),
+#   condor, PBS, Torque, SGE (PSB and Torque/OpenPBS are identical at the moment)
+cluster_name = HTcondor
+
+# Queue/Partition of cluster to be used for running
+#cluster_queue = 2nw
+
+# Use local scratch directory to run on cluster (speedup for slow shared file systems):
+# 0 -- standard run on shared file system (default)
+# 1 -- run in local scratch of nodes; PROVIDE cluster_local_scratch_path BELOW!
+# NOT IMPLEMENTED YET: 2 -- run without shared file system; PROVIDE cluster_local_scratch_path BELOW!
+cluster_local_run = 0
+
+# Provide a path to the local scratch directories of the nodes
+#cluster_local_scratch_path = /PATH/TO/SCRATCH/
+
+# Maximal runtime for a single process on a single node,
+# too low values may lead failure of the code
+#cluster_runtime = 2-00:00:00
+
+# add customizable lines at the beginning of cluster submission file
+# this allows to add certain cluster-specific requirements as options to the submission
+# eg: cluster_submit_line1 = "#SBATCH --mem-per-cpu=4000"
+#     to increase the memory of a slurm job on certain clusters
+# or you can add commands to the bash commands to source or export stuff on the nodes:
+# eg: cluster_submit_line2 = "source /PATH/"
+# or: cluster_submit_line3 = "export YOUR_FAVOURITE_VARIABLE=/PATH/"
+#
+# You can add as many lines as you want of the structure "cluster_submit_lineX", where X
+# is a number which defines the order of the lines added to the submission file.
+# If you want/need to use "#", "%" or "=" signs you need to put quotes around the line: "#blah" !
+cluster_submit_line1 = """+UseOS                  = "el9""""
+cluster_submit_line2 = """+JobCategory            = "medium""""
+cluster_submit_line3 = "request_cpus   = 1"
+cluster_submit_line4 = "request_memory = 8G"
+cluster_submit_line5 = "getenv = true"
+cluster_submit_line6 = "should_transfer_files = IF_NEEDED"
+cluster_submit_line7 = "accounting_group = smefit"
+#cluster_submit_line8 = "+MaxWallTimeMins = 1"
+#        ...          =   ...
+# If you need to use quotes in your command you can use:
+#cluster_submit_line1 = """variable = "this_has_to_be_in_quotes""""
+
+
+# max number of parallel runs:
+# maximum number of cores used for multicore (default: maximal cores available on the machine); 
+# max number of used nodes at the same time for cluster (default: not limited)
+#max_nr_parallel_jobs = 400 # when commented the defaults are used
+
+# this is a fail-safe: it prevents running more jobs than parallel_job_limit; the code stops 
+# with a warning, waiting for user input when exceeding this limit (default: 5000)
+#parallel_job_limit = 5000 # when commented the default is used
+
+# max jobs in cluster queue:
+# maximum number of jobs that can be submitted to the cluster queue. If the cluster queue has 
+# more jobs than max_jobs_in_cluster_queue MATRIX will wait until there are less (default: not limited)
+#max_jobs_in_cluster_queue = 400 # when commented the default is used
+
+###=============###
+## run parameter ##
+###=============###
+
+# you can specify the path to the process executable; this will also overwrite the soft link to the 
+# executable in the run folders; makes the folder portable to other machines; 
+# MUST BE A FULL PATH STARTING WITH "/"
+#path_to_executable = /<path_to_MATRIX>/bin
+
+# max number of restarts of runs (which may have failed) default=2
+max_restarts = 0 # when commented the default is used
+
+###=====================###
+## compilation parameter ##
+###=====================###
+
+# maximum number of cores used for compilation (default: maximal cores available on the machine); 
+#nr_cores = 16 # when commented the default is used
+
+# you can specify the path to lhapdf-config executable;  not required if lhapdf-config executable
+# accessible from command line (will be determined automatically in that case)
+path_to_lhapdf = /project/theorie/jthoeve/miniconda3/envs/pinefarm/bin/lhapdf-config  # !absolute path!
+
+# if OpenLoops is already installed, you can specify the path to openloops executable; not required 
+# if openloops executable accessible from command line (will be determined automatically in that case);
+# otherwise, OpenLoops will be downloaded and installed automatically
+#path_to_openloops = /PATH/openloops  # !absolute path!
+
+#you can specify the path to recola, if already installed locally.
+#path_to_recola = /PATH/recola_sm # !absolute path!
+
+#you can specify the path to chaplin, if already installed locally.
+#path_to_chaplin = /PATH/chaplin # !absolute path!
+
+# you can specify the path to ginac, if already installed locally; ginac will not be compiled in this case
+#path_to_ginac = /PATH/ginac-install/  # !absolute path!
+
+# you can specify the path to cln, if already installed locally; cln will not be compiled in this case
+#path_to_cln = /PATH/cln-install/  # !absolute path!
+
+# you can specify the path to pineappl, if already installed locally; pineappl will not be compiled in this case
+#path_to_pineappl = /PATH/pineappl-install/  # !absolute path!
+
+# you can specify the path to 2loop amplitude of ppaaa03 process, if already installed locally;
+#path_to_ppaaa03_2loop = /PATH/ppaaa03_2loop-install/  # !absolute path!
+
+# you can specify the path to the libfortran libary, usually found by the system automatically
+# NOTE: this path must also be set if the libquadmath library is not found
+# NOTE: this path can be also used if other libaries are missing during the compilation process
+#path_to_libgfortran = /PATH/x86_64-linux-gnu/  # !absolute path!
+
+# you can specify the path to gsl-config executable;  not required if gsl-config executable 
+# accessible from command line (will be determined automatically in that case)
+path_to_gsl = /project/theorie/jthoeve/miniconda3/envs/pinefarm/bin/gsl-config  # !absolute path!
