@@ -3342,7 +3342,7 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
             time_before = time.time()
             firsttime = True
             while (self.runmode == "cluster" and cluster.get_jobs_in_cluster_queue() >= int(config_list["max_jobs_in_cluster_queue"]) and int(config_list["max_jobs_in_cluster_queue"]) !=-1):
-                time.sleep(2)
+                time.sleep(60)
                 print("Calling get_jobs_in_cluster_queue")
                 time_now = time.time()
                 # prints status every 5 minutes to show that script is alive
