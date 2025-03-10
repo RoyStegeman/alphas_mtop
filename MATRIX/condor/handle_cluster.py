@@ -8,6 +8,7 @@ import signal
 import copy
 import stat
 import getpass
+from getpass import getuser
 from os.path import join as pjoin
 # own modules
 from initialize_classes import out, fold
@@ -140,24 +141,20 @@ class cluster_basic(object): # basic class that handles all cluster types
     # this function returns the number of jobs that are currently in the cluster queue
         if not self.command_list_queue:
             out.print_error("Cluster command command_list_queue for function get_jobs_in_cluster_queue in cluster class for cluster \"%s\" not implemented." % self.cluster_name)
-        if self.config_list.get("current_user","0") == "1":
-            if self.command_list_queue_current_user == "*not set*":
-                out.print_error("command_list_queue_current_user not implemented for selceted cluster = %s" % self.cluster_name)
-            command_list_queue = self.command_list_queue_current_user
-        else: 
-            command_list_queue = self.command_list_queue
+        command_list_queue = self.command_list_queue
+
         try:
-            request = subprocess.Popen(command_list_queue, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0].decode()
+            p1 = subprocess.Popen(command_list_queue, stdout=subprocess.PIPE, text=True)
+            p2 = subprocess.Popen(["grep", "Total for query"], stdin=p1.stdout, stdout=subprocess.PIPE, text=True)
+            p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits
+            p3 = subprocess.Popen(["awk", "{print $4}"], stdin=p2.stdout, stdout=subprocess.PIPE, text=True)
+            p2.stdout.close()
+            output, error = p3.communicate()
+            nr_jobs_in_cluster = int(output.strip())
         except:
-            try:
-                request = subprocess.Popen(command_list_queue, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0].decode()
-            except:
-                try:
-                    request = subprocess.Popen(command_list_queue, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0].decode()
-                except:
-                    out.print_error("The command \"%s\" does not appear to work on this cluster. Did you choose the correct cluster in MATRIX_configuration? Exiting..." % self.command_list_queue)
-        nr_of_lines = request.count("\n")
-        return nr_of_lines - 1
+            out.print_error("The command \"%s\" does not appear to work on this cluster. Did you choose the correct cluster in MATRIX_configuration? Exiting..." % self.command_list_queue)
+
+        return nr_jobs_in_cluster
 #}}}
 #{{{ def: cluster_job_remove(self,job_id)
     def cluster_job_remove(self,job_id):
@@ -639,15 +636,16 @@ class HTcondor_cluster(cluster_basic): # class for HTCondor cluster as used on t
     def __init__(self,config_list,verbose):
         cluster_basic.__init__(self,config_list,verbose)
         self.command_kill_job = "condor_rm"
-#        self.command_list_queue = ["condor_q"]
-#        self.command_list_queue_with_jobid = ["condor_q"]
+#
 #        self.job_status_list = [" I "," R "," H "]  # structure: [pending,running,(held)]
-        self.command_list_queue = ["condor_q", "-af" ,"JobStatus"]
+        self.current_user = getpass.getuser()
+        self.command_list_queue = ["condor_q", self.current_user]
+
         self.command_list_queue_with_jobid = ["condor_q", "-af" ,"JobStatus"]
         self.job_status_list = ["1","2","5","7"]  # structure: [pending,running,(held),suspended]
-        current_user = getpass.getuser()
-        self.command_release_held_jobs = ["condor_release", current_user]
-        self.command_continue_suspended_jobs = ["condor_continue", current_user]
+
+        self.command_release_held_jobs = ["condor_release", self.current_user]
+        self.command_continue_suspended_jobs = ["condor_continue", self.current_user]
 #}}}
 #{{{ def: cluster_job_finished(self,job_id)
     def cluster_job_finished(self,job_id):
