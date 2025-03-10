@@ -256,7 +256,7 @@ default_parameters["LHAPDF_NNLO"] = "NNPDF30_nnlo_as_0118"
 # interval (in seconds) how often the status (queued/running/finished jobs) is printed out
 default_parameters["print_out_interval"] = 60*5
 # interval (in seconds) how often the jobs on the cluster are checked (and stopped/restarted/etc.)
-default_parameters["check_interval"] = 60 * 15
+default_parameters["check_interval"] = 60
 default_parameters["switch_qT_accuracy"] = "0"
 default_parameters["approx_ckm_EW"] = "1"
 
@@ -1079,8 +1079,8 @@ class inputs():
 
         if parameter_list.get("run_NNLO_QCD") == "1" and int(parameter_list.get("loop_induced")) > 1 and parameter_list.get("NLO_subtraction_method") == "2":
             out.print_error("If you want to compute NNLO QCD and NLO loop-induced gg contribution together, you must used Catani-Seymour as NLO subtraction method. Either switch to Catani-Seymour (NLO_subtraction_method=1) or disable NLO gg contribution (loop_induced<2), and restart the code. Exiting...")
-        if prc.process_name in ckm_EW_processes and parameter_list.get("approx_ckm_EW") != "0" and parameter_list.get("approx_ckm_EW") != "1" and parameter_list.get("approx_ckm_EW") != "2":
-            out.print_error("Switch approx_ckm_EW can only assume values 0 (for exact ckm), 1 (for trivial ckm of 1-loop EW correction) or 2 (for trivial ckm of entire EW correction). Please set approx_ckm_EW=0 or approx_ckm_EW=1 or approx_ckm_EW=2 and resart the run. Exiting...")
+        if prc.process_name in ckm_EW_processes and parameter_list.get("approx_ckm_EW") != "1" and parameter_list.get("approx_ckm_EW") != "2":
+            out.print_error("Switch approx_ckm_EW can only assume values 1 (for trivial ckm of 1-loop EW correction) or 2 (for trivial ckm of entire EW correction). Please set approx_ckm_EW=1 or approx_ckm_EW=2 and resart the run. Exiting...")
 #}}}
 #{{{ def: input_read_SLHA(self,file_path,SLHA_list)
     def input_read_SLHA(self,file_path,SLHA_list):
@@ -3338,10 +3338,12 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
 #}}}
 #{{{ initial submit of all jobs, including relevant printouts
         for job in job_list:
+            print(f"Analysing job {job}")
             time_before = time.time()
             firsttime = True
             while (self.runmode == "cluster" and cluster.get_jobs_in_cluster_queue() >= int(config_list["max_jobs_in_cluster_queue"]) and int(config_list["max_jobs_in_cluster_queue"]) !=-1):
                 time.sleep(60)
+                print("Calling get_jobs_in_cluster_queue")
                 time_now = time.time()
                 # prints status every 5 minutes to show that script is alive
                 # (important also for cluster mode, where not all jobs can always be started at once)
@@ -3357,11 +3359,13 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
                         elif len(multiprocessing.active_children()) >= nr_cores and int(nr_cores) != -1:
                             out.print_info("Submitted max_nr_parallel_jobs=%s (from MATRIX_configuration) jobs to cluster queue. Waiting for own jobs to finish..." % nr_cores)
                     current_time  = str(datetime.datetime.now()).split('.')[0]
-                    # out.print_jobs("| %s | Queued: %s | Running: %s | Finished: %s |" %
-                    #                (current_time, queued_jobs, running_jobs, finished_jobs))
+                    out.print_jobs("| %s | Queued: %s | Running: %s | Finished: %s |" %
+                                   (current_time, queued_jobs, running_jobs, finished_jobs))
                     time_before = time_now
-            nr_of_tries = 1 
+            nr_of_tries = 1
+
             job_id, start_time = self.start_job_on_cluster(job,nr_of_tries)
+            print(f"Submitted job {job_id}")
             current_time  = str(datetime.datetime.now()).split('.')[0]
             self.write_job_log_start(job[0],job[1],"started at %s ..."%(current_time))
             job_dict[job_id] = job+[nr_of_tries,start_time]
@@ -3405,7 +3409,6 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
                                 job_correctly_finished = True
                             else:
                               cluster_job_finished = False
-
                     if cluster_job_finished or job_correctly_finished:
                         del job_dict[job_id]
                         print(f"Length of job_dict: {len(job_dict)}")
@@ -3426,30 +3429,31 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
                             # try to remove from list of failed jobs (can happen when job was restarted)
                             try:
                                 self.remove_job_failed_log(run_path,process)
-                            except: 
+                            except:
                                 pass
                             # add job to log of list of succseffully finished jobs
                             self.add_job_success_log(run_path,process)
                         else:
+                            import pdb; pdb.set_trace()
                             job_id_old = job_id
                             should_not_be_running_and_not_correctly_finished.append(job_id)
                             # write that try failed
                             self.write_job_log(run_path,process,"try %s failed after %dh:%02dm:%02ds"%(nr_of_tries, h, m, s))
                             if nr_of_tries < self.max_nr_of_tries:
-                                while (cluster.get_jobs_in_cluster_queue() >= int(config_list["max_jobs_in_cluster_queue"]) and int(config_list["max_jobs_in_cluster_queue"]) !=-1):
-                                    time.sleep(60)
-                                    time_now = time.time()
-                                    # prints status every 5 minutes to show that script is alive
-                                    if time_now - time_before >= parameter_list["print_out_interval"]:
-                                        if cluster.get_jobs_in_cluster_queue() >= int(config_list["max_jobs_in_cluster_queue"]) and int(config_list["max_jobs_in_cluster_queue"] !=-1):
-                                            queued_jobs   = missing_jobs+cluster.get_nr_of_cluster_jobs("pending")
-                                            running_jobs  = cluster.get_nr_of_cluster_jobs("running")
-                                            finished_jobs = max_jobs - queued_jobs - running_jobs
-                                            out.print_info("Cluster queue full (%s jobs > max_jobs_in_cluster_queue=%s in MATRIX_configuration). Waiting for other jobs to finish..." % (cluster.get_jobs_in_cluster_queue(),config_list["max_jobs_in_cluster_queue"]))
-                                        current_time  = str(datetime.datetime.now()).split('.')[0]
-                                        out.print_jobs("| %s | Queued: %s | Running: %s | Finished: %s |" %
-                                                       (current_time, queued_jobs, running_jobs, finished_jobs))
-                                        time_before = time_now
+                                # while (cluster.get_jobs_in_cluster_queue() > int(config_list["max_jobs_in_cluster_queue"]) and int(config_list["max_jobs_in_cluster_queue"]) !=-1):
+                                #     time.sleep(1)
+                                #     time_now = time.time()
+                                #     # prints status every 5 minutes to show that script is alive
+                                #     if time_now - time_before >= parameter_list["print_out_interval"]:
+                                #         if cluster.get_jobs_in_cluster_queue() > int(config_list["max_jobs_in_cluster_queue"]) and int(config_list["max_jobs_in_cluster_queue"] !=-1):
+                                #             queued_jobs   = missing_jobs+cluster.get_nr_of_cluster_jobs("pending")
+                                #             running_jobs  = cluster.get_nr_of_cluster_jobs("running")
+                                #             finished_jobs = max_jobs - queued_jobs - running_jobs
+                                #             out.print_info("Cluster queue full (%s jobs > max_jobs_in_cluster_queue=%s in MATRIX_configuration). Waiting for other jobs to finish..." % (cluster.get_jobs_in_cluster_queue(),config_list["max_jobs_in_cluster_queue"]))
+                                #         current_time  = str(datetime.datetime.now()).split('.')[0]
+                                #         out.print_jobs("| %s | Queued: %s | Running: %s | Finished: %s |" %
+                                #                        (current_time, queued_jobs, running_jobs, finished_jobs))
+                                #         time_before = time_now
                                 out.print_warning("Job%s failed; path: %s, channel: %s. Re-trying with different random seed..." % (" (ID %s)" % job_id if self.runmode == "cluster" else "",run_path,process))
                                 # change random seed of run
                                 try: # normal runs
@@ -3459,7 +3463,7 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
                                     zwahl = max_parallel_runs*(nr_of_tries)+parallel_folder_i
                                 except: # grid runs
                                     zwahl = randint(10,5000)
-                                # adding max_parallel_runs makes sure there is no overlapping in random seed with the other runs; 
+                                # adding max_parallel_runs makes sure there is no overlapping in random seed with the other runs;
                                 # NOTE (2do:?) there could be a overlapping between extrapolation and main run, but what do you want?
                                 param_file_path = pjoin(run_path,"log","file_parameter."+process+".dat")
                                 inp.input_set_entry(param_file_path,"zwahl",str(zwahl))
@@ -3476,7 +3480,7 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
                                 # try to remove from list of successful jobs (can happen when successful job was restarted)
                                 try:
                                     self.remove_job_success_log(run_path,process)
-                                except: 
+                                except:
                                     pass
                                 self.add_job_failed_log(run_path,process)
                             cluster.cluster_job_remove(job_id_old) # removes from active jobs and add to finished job list
@@ -3652,7 +3656,7 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
           os.chdir(run_path)
         
           while nr_of_tries <= max_nr_of_tries:
-              # set path of inut file
+              # set path of input file
               subprocess_in_path = pjoin(run_path,"log",process+".in")
               # set path of ouput file (standard screen output)
               subprocess_out_path = pjoin(run_path,"log",process+"_try"+str(nr_of_tries)+".log")
@@ -4174,10 +4178,9 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
                 trivial_ckm_in_whole_EW = True
             else:
                 trivial_ckm_in_whole_EW = False
-            if parameter_list.get("approx_ckm_EW","1") != "0":    
-                if "VA.QEW" == contribution or (trivial_ckm_in_whole_EW and ("CA.QEW" == contribution  or "RA.QEW" == contribution)):
-                    inp.input_set_entry(pjoin(grid_dir,"file_model.dat"),"CKM_matrix","trivial")
-                    inp.input_set_entry(pjoin(grid_dir,"file_parameter.dat"),"switch_amplitude_not_required","1")
+            if "VA.QEW" == contribution or (trivial_ckm_in_whole_EW and ("CA.QEW" == contribution  or "RA.QEW" == contribution)):
+                inp.input_set_entry(pjoin(grid_dir,"file_model.dat"),"CKM_matrix","trivial")
+                inp.input_set_entry(pjoin(grid_dir,"file_parameter.dat"),"switch_amplitude_not_required","1")
 #}}}
 #{{{ def: set_inputs_pre_run(self)
     def set_inputs_pre_run(self,run_dir_i,parallel_folder_i):
@@ -4271,10 +4274,9 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
                 trivial_ckm_in_whole_EW = True
             else:
                 trivial_ckm_in_whole_EW = False
-            if parameter_list.get("approx_ckm_EW","1") != "0":    
-                if "VA.QEW" == contribution or (trivial_ckm_in_whole_EW and ("CA.QEW" == contribution or "RA.QEW" == contribution)):
-                    inp.input_set_entry(pjoin(run_dir_i,"file_model.dat"),"CKM_matrix","trivial")
-                    inp.input_set_entry(pjoin(run_dir_i,"file_parameter.dat"),"switch_amplitude_not_required","1")
+            if "VA.QEW" == contribution or (trivial_ckm_in_whole_EW and ("CA.QEW" == contribution or "RA.QEW" == contribution)):
+                inp.input_set_entry(pjoin(run_dir_i,"file_model.dat"),"CKM_matrix","trivial")
+                inp.input_set_entry(pjoin(run_dir_i,"file_parameter.dat"),"switch_amplitude_not_required","1")
         if "PT.QCD" == contribution or "PT2.QCD" == contribution:
             inp.input_set_entry(pjoin(run_dir_i,"file_parameter.dat"),"switch_CV","0")
 #}}}
@@ -4349,10 +4351,9 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
                 trivial_ckm_in_whole_EW = True
             else:
                 trivial_ckm_in_whole_EW = False
-            if parameter_list.get("approx_ckm_EW","1") != "0":
-                if "VA.QEW" == contribution or (trivial_ckm_in_whole_EW and ("CA.QEW" == contribution or "RA.QEW" == contribution)):
-                    inp.input_set_entry(pjoin(run_dir_i,"file_model.dat"),"CKM_matrix","trivial")
-                    inp.input_set_entry(pjoin(run_dir_i,"file_parameter.dat"),"switch_amplitude_not_required","1")
+            if "VA.QEW" == contribution or (trivial_ckm_in_whole_EW and ("CA.QEW" == contribution or "RA.QEW" == contribution)):
+                inp.input_set_entry(pjoin(run_dir_i,"file_model.dat"),"CKM_matrix","trivial")
+                inp.input_set_entry(pjoin(run_dir_i,"file_parameter.dat"),"switch_amplitude_not_required","1")
         if "PT.QCD" == contribution or "PT2.QCD" == contribution:
             inp.input_set_entry(pjoin(run_dir_i,"file_parameter.dat"),"switch_CV","0")
 

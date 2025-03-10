@@ -74,7 +74,7 @@ cluster_submit_line7 = "accounting_group = smefit"
 # max jobs in cluster queue:
 # maximum number of jobs that can be submitted to the cluster queue. If the cluster queue has 
 # more jobs than max_jobs_in_cluster_queue MATRIX will wait until there are less (default: not limited)
-#max_jobs_in_cluster_queue = 400 # when commented the default is used
+max_jobs_in_cluster_queue = 2 # when commented the default is used
 
 ###=============###
 ## run parameter ##

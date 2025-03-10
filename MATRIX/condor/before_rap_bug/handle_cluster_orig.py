@@ -138,10 +138,9 @@ class cluster_basic(object): # basic class that handles all cluster types
 # hardly (single command) cluster dependend functions:
 #{{{ def: get_jobs_in_cluster_queue(self)
     def get_jobs_in_cluster_queue(self):
-        # this function returns the number of jobs that are currently in the cluster queue
+    # this function returns the number of jobs that are currently in the cluster queue
         if not self.command_list_queue:
-            out.print_error(
-                "Cluster command command_list_queue for function get_jobs_in_cluster_queue in cluster class for cluster \"%s\" not implemented." % self.cluster_name)
+            out.print_error("Cluster command command_list_queue for function get_jobs_in_cluster_queue in cluster class for cluster \"%s\" not implemented." % self.cluster_name)
         command_list_queue = self.command_list_queue
 
         try:
@@ -153,8 +152,7 @@ class cluster_basic(object): # basic class that handles all cluster types
             output, error = p3.communicate()
             nr_jobs_in_cluster = int(output.strip())
         except:
-            out.print_error(
-                "The command \"%s\" does not appear to work on this cluster. Did you choose the correct cluster in MATRIX_configuration? Exiting..." % self.command_list_queue)
+            out.print_error("The command \"%s\" does not appear to work on this cluster. Did you choose the correct cluster in MATRIX_configuration? Exiting..." % self.command_list_queue)
 
         return nr_jobs_in_cluster
 #}}}
