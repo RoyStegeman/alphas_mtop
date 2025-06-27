@@ -3197,7 +3197,7 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
             time_before = time.time()
             firsttime = True
             while (len(multiprocessing.active_children()) >= int(nr_cores) and int(nr_cores) != -1) or (self.runmode == "cluster" and cluster.get_jobs_in_cluster_queue() > int(config_list["max_jobs_in_cluster_queue"]) and int(config_list["max_jobs_in_cluster_queue"]) !=-1):
-                time.sleep(1)
+                time.sleep(600)
                 time_now = time.time()
                 # prints status every 5 minutes to show that script is alive
                 # (important also for cluster mode, where not all jobs can always be started at once)
@@ -3341,7 +3341,7 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
             time_before = time.time()
             firsttime = True
             while (self.runmode == "cluster" and cluster.get_jobs_in_cluster_queue() >= int(config_list["max_jobs_in_cluster_queue"]) and int(config_list["max_jobs_in_cluster_queue"]) !=-1):
-                time.sleep(60)
+                time.sleep(600)
                 time_now = time.time()
                 # prints status every 5 minutes to show that script is alive
                 # (important also for cluster mode, where not all jobs can always be started at once)
@@ -3437,7 +3437,7 @@ class run_class(): # class to run C++ executable of MUNICH in different modes (m
                             self.write_job_log(run_path,process,"try %s failed after %dh:%02dm:%02ds"%(nr_of_tries, h, m, s))
                             if nr_of_tries < self.max_nr_of_tries:
                                 while (cluster.get_jobs_in_cluster_queue() >= int(config_list["max_jobs_in_cluster_queue"]) and int(config_list["max_jobs_in_cluster_queue"]) !=-1):
-                                    time.sleep(60)
+                                    time.sleep(600)
                                     time_now = time.time()
                                     # prints status every 5 minutes to show that script is alive
                                     if time_now - time_before >= parameter_list["print_out_interval"]:
