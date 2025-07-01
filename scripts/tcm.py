@@ -159,7 +159,8 @@ def compute_posterior(fitname):
     if not np.allclose(S, stored_covmat):
         print("Reconstructed theory covmat, S, is not the same as the stored covmat!")
 
-    theorypreds_fit = API.group_result_table_no_table(**inps_central_fit).iloc[:, 2:]
+    data_theory_results = API.group_result_table_no_table(**inps_central_fit)
+    theorypreds_fit = data_theory_results.iloc[:, 2:]
 
     # experimental covmat
     C = API.groups_covmat(
@@ -184,8 +185,12 @@ def compute_posterior(fitname):
         [i.pseudodata.reindex(prior_theorypreds_central.index) for i in pseudodata], axis=1
     )
 
+
+
     invcov = np.linalg.inv(C + S)
+
     delta_T_tilde = -S_hat @ invcov @ (T0 - dat_reps.mean(axis=1))
+    #delta_T_tilde = -S_hat @ invcov @ (T0 - data_theory_results["data_central"])
 
     # P_tilde is Eq. 3.38.
     #
