@@ -58,6 +58,12 @@ particle 1       = atop 1
 binningtype      = irregular
 edges            = 300:380:470:620:820:1100:1500:2500
 
+distributionname = CMS_TTBAR_13TEV_2025_2L_DIF_PTT
+distributiontype = pT
+particle 1       = top 1
+binningtype      = irregular
+edges            = 0:55:100:165:240:330:440:600
+
 
 # (convert absolute to regular)
 distributionname = CMS_TTBAR_13TEV_2L_DIF_YTTBAR_catr
@@ -195,3 +201,19 @@ particle 1       = top 1
 particle 1       = atop 1
 binningtype      = irregular
 edges            = 0.0:0.3:0.6:0.9:1.2:1.5:2.5
+
+# cms 2l
+
+distributionname = cms_2l_2d_mttbar
+distributiontype = m
+particle 1       = top 1
+particle 1       = atop 1
+binningtype      = irregular
+edges            = 300:400:500:650:1500
+
+distributionname = cms_2l_2d_yttbar
+distributiontype = absy
+particle 1       = top 1
+particle 1       = atop 1
+binningtype      = irregular
+edges            = 0.0:0.35:0.75:1.15:2.50

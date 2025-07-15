@@ -33,3 +33,9 @@ distributionname_2      =       atl_hadr_2d_ym3_ttx
 dddistributionname      =       CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR
 distributionname_1      =       cms_lj_2d_mttbar
 distributionname_2      =       cms_lj_2d_yttbar
+
+# cms 2l
+
+dddistributionname      =       CMS_TTBAR_13TEV_2025_2L_DIF_MTTBAR-YTTBAR
+distributionname_1      =       cms_2l_2d_mttbar
+distributionname_2      =       cms_2l_2d_yttbar
