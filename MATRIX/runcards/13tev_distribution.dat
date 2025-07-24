@@ -58,7 +58,7 @@ particle 1       = atop 1
 binningtype      = irregular
 edges            = 300:380:470:620:820:1100:1500:2500
 
-distributionname = CMS_TTBAR_13TEV_2025_2L_DIF_PTT
+distributionname = CMS_TTBAR_13TEV_2L_138FB-1_DIF_PTT
 distributiontype = pT
 particle 1       = top 1
 binningtype      = irregular
