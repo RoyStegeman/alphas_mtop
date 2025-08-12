@@ -1,3 +1,6 @@
+# This script reproduces the chi2 of the tot xsec in https://vp.nnpdf.science/Ms_vTGFuRWeh2x6td-AoHw==/#chi-data (NNLO)
+# and https://vp.nnpdf.science/F2hM3Gg6Q1u-E9jFsqIKAQ==/#chi-data (NLO + K factor)
+
 from validphys.api import API
 import numpy as np
 

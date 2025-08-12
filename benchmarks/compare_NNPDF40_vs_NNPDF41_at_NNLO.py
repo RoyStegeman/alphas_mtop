@@ -58,12 +58,13 @@ conv_object = Conv(convolution_types=conv_type, pid=2212)
 
 for old_grid_name, new_grid_name in gridlist:
 
-    old_grid = pineappl.grid.Grid.read(f"/Users/jaco/Documents/physics_projects/theories_slim/data/grids/4001/{old_grid_name}.pineappl.lz4")
+    old_grid = pineappl.grid.Grid.read(f"/Users/jaco/miniconda3/envs/nnpdf_dev/share/NNPDF/theories/theory_708/fastkernel/{old_grid_name}.pineappl.lz4")
 
     # 40_009_000 grids are symlinked to 41_000_000 grids, so we can read the same grid name
-    new_grid = pineappl.grid.Grid.read(f"/Users/jaco/Documents/physics_projects/theories_slim/data/grids/40009000/{new_grid_name}.pineappl.lz4")
+    new_grid = pineappl.grid.Grid.read(f"/Users/jaco/miniconda3/envs/nnpdf_dev/share/NNPDF/theories/theory_40009000/fastkernel/{new_grid_name}.pineappl.lz4")
 
     # the total cross section grids are computed with top++ and keep a different order convention
+    # convolution in the fit is done correctly, theory prediction entering the fit corresponds to what you get when you do the below
     if "TOT_X-SEC" in new_grid_name:
         orders_nnlo_new = np.array([1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
     else:
