@@ -1,22 +1,7 @@
-# This script compares the NLO predictions of grids in NNPDF4.0 and NNPDF4.1
+# This script compares the NNLO predictions of grids in NNPDF4.0 and NNPDF4.1
 
 # Findings:
 
-# CMS_TTBAR_8TEV_LJ_DIF_YTTBAR gives a 3% mismatch, while ATLAS_TTBAR_8TEV_LJ_DIF_YTTBAR gives perfect agreement.
-# The CMS grid doesn't carry any metadata, suggesting it was probably ported from appfel grids. The ATLAS grid
-# was computed with madgraph using the same dynamical scale choice as used in MATRIX, namely HT/4. This shows our
-# 4.1 MATRIX grids are correct: if one MATRIX grid gives agreement with 4.0, also all the other MATRIX grids
-# should give agreement with 4.0, because they are all computed from the same run/events
-
-# The CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT grid was computed in NNPDF4.0 with a different dynamical scale, namely
-# 1/4 sqrt(ET^t ** 2 + ET^tbar ** 2), which is not the same as HT/4 = 1/ 4 (ET^t + ET^tbar) . This then explains
-# why for CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT we are seeing at 13% mismatch: the scale choice is different!
-
-# The 1D and 2D distributions in MATRIX originate from the same events/run so if the 1D is fully benchmarked,
-# we can likewise be confident the 2D is correct as well
-
-# The total cross-section grids are off at LO and NLO, but they agree at NNLO, see script
-# compare_NNPDF40_vs_NNPDF41_at_NNLO.py
 
 
 import lhapdf
@@ -72,24 +57,33 @@ conv_type = ConvType(polarized=False, time_like=False)
 conv_object = Conv(convolution_types=conv_type, pid=2212)
 
 for old_grid_name, new_grid_name in gridlist:
+
     old_grid = pineappl.grid.Grid.read(f"/Users/jaco/Documents/physics_projects/theories_slim/data/grids/4001/{old_grid_name}.pineappl.lz4")
 
     # 40_009_000 grids are symlinked to 41_000_000 grids, so we can read the same grid name
     new_grid = pineappl.grid.Grid.read(f"/Users/jaco/Documents/physics_projects/theories_slim/data/grids/40009000/{new_grid_name}.pineappl.lz4")
 
-    new_nlo_pred = new_grid.convolve(
+    # the total cross section grids are computed with top++ and keep a different order convention
+    if "TOT_X-SEC" in new_grid_name:
+        orders_nnlo_new = np.array([1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
+    else:
+        orders_nnlo_new = np.array([1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
+
+    new_nnlo_pred = new_grid.convolve(
         pdg_convs=[conv_object, conv_object],  # Similar convolutions for symmetric protons
         xfxs=[pdf.xfxQ2, pdf.xfxQ2],  # Similar PDF sets for symmetric protons
         alphas=pdf.alphasQ2,
-        order_mask=np.array([1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
+        order_mask=orders_nnlo_new
     )
 
-    old_nlo_pred = old_grid.convolve(
+    old_nnlo_pred = old_grid.convolve(
         pdg_convs=[conv_object, conv_object],  # Similar convolutions for symmetric protons
         xfxs=[pdf.xfxQ2, pdf.xfxQ2],  # Similar PDF sets for symmetric protons
         alphas=pdf.alphasQ2,
-        order_mask=np.array([1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
+        order_mask=np.array([1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
     )
+
+
 
     print(new_grid_name)
-    print(new_nlo_pred/old_nlo_pred)
+    print(new_nnlo_pred/old_nnlo_pred)
