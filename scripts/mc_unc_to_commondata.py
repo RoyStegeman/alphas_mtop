@@ -1,0 +1,160 @@
+# this script adds the MC uncertainty as a variant to the commondata
+
+"""
+variants:
+    mc_uncertainties:
+        data_uncertainties:
+            - uncertainties.yaml
+            - mc_uncertainties.yaml
+"""
+
+import pandas as pd
+import pathlib
+import numpy as np
+from ruamel.yaml import YAML
+
+yaml = YAML()
+yaml.preserve_quotes = True
+
+# top datasets
+dataset_inputs = {
+"ATLAS_TTBAR_7TEV_TOT_X-SEC",
+"ATLAS_TTBAR_8TEV_2L_DIF_MTTBAR-NORM",
+"ATLAS_TTBAR_8TEV_2L_DIF_YTTBAR-NORM",
+"ATLAS_TTBAR_8TEV_LJ_DIF_MTTBAR-NORM",
+"ATLAS_TTBAR_8TEV_LJ_DIF_PTT-NORM",
+"ATLAS_TTBAR_8TEV_LJ_DIF_YT-NORM",
+"ATLAS_TTBAR_8TEV_LJ_DIF_YTTBAR-NORM",
+"ATLAS_TTBAR_8TEV_TOT_X-SEC",
+"ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-NORM",
+"ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR-NORM",
+"ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR-NORM",
+"ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-NORM",
+"ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT-NORM",
+"ATLAS_TTBAR_13TEV_LJ_DIF_PTT-NORM",
+"ATLAS_TTBAR_13TEV_LJ_DIF_YT-NORM",
+"ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR-NORM",
+"CMS_TTBAR_5TEV_TOT_X-SEC",
+"CMS_TTBAR_7TEV_TOT_X-SEC",
+"CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT-NORM",
+"CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR-NORM",
+"CMS_TTBAR_8TEV_2L_DIF_PTT-YT-NORM",
+"CMS_TTBAR_8TEV_LJ_DIF_MTTBAR-NORM",
+"CMS_TTBAR_8TEV_LJ_DIF_PTT-NORM",
+"CMS_TTBAR_8TEV_LJ_DIF_YT-NORM",
+"CMS_TTBAR_8TEV_LJ_DIF_YTTBAR-NORM",
+"CMS_TTBAR_8TEV_TOT_X-SEC",
+"CMS_TTBAR_13TEV_2L_DIF_MTTBAR-NORM",
+"CMS_TTBAR_13TEV_2L_DIF_PTT-NORM",
+"CMS_TTBAR_13TEV_2L_DIF_YT-NORM",
+"CMS_TTBAR_13TEV_2L_DIF_YTTBAR-NORM",
+"CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-NORM",
+"CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR-NORM",
+"CMS_TTBAR_13TEV_LJ_DIF_PTT-NORM",
+"CMS_TTBAR_13TEV_LJ_DIF_YT-NORM",
+"CMS_TTBAR_13TEV_LJ_DIF_YTTBAR-NORM",
+"CMS_TTBAR_13TEV_TOT_X-SEC"
+}
+
+matrix_suffix = "__NNLO_QCD"
+fb_to_pb = 1e-3
+matrix_run_dir = pathlib.Path("../MATRIX/final_results")
+commondata_dir = pathlib.Path("/Users/jaco/Documents/physics_projects/nnpdf/nnpdf_data/nnpdf_data/commondata")
+
+def read_table(table):
+    """
+     Reads Monte Carlo uncertainty from MATRIX and returns a dictionary of dataframes
+    """
+    df = pd.read_table(table, sep="\s+", header=0, skiprows=0, index_col=False)
+    df_columns = df.columns[1:]
+    df = df.iloc[:, :-1]
+    df.columns = df_columns
+    return df
+
+def convert_unc_abs_to_norm(df):
+    """
+    propagates the error on x_i to y_i = x_i / S with S = sum(x_i)
+    """
+    x_i = df["scale-central"]
+    delta_x_i = df["central-error"]
+    S = x_i.sum(axis=0)
+    sum_delta_xi_sq = (delta_x_i ** 2).sum(axis=0)
+
+    # propagate error
+    delta_y_i_sq = (delta_x_i ** 2 - 2 * x_i * delta_x_i ** 2 / S + x_i ** 2 / S ** 2 * sum_delta_xi_sq) / S ** 2
+    delta_y_i = np.sqrt(delta_y_i_sq)
+    y_i = x_i / S
+    return y_i, delta_y_i
+
+def write_commondata_unc(mc_uncs, commondata_path, observable_name):
+    """
+    Writes the Monte Carlo uncertainties to uncertainties.yaml in commondata format
+    """
+    mc_dict = {"definitions": {"stat":
+                                   {"description": "Monte Carlo uncertainty",
+                                    "treatment": "ADD",
+                                    "type": "UNCORR"}}, "bins": [{"stat": mc_unc} for mc_unc in mc_uncs]}
+
+    with open(commondata_path /  "mc_uncertainties.yaml", 'w') as file:
+        yaml.dump(mc_dict, file)
+
+    # link to metadata
+    with open(commondata_path / "metadata.yaml") as file:
+        metadata = yaml.load(file)
+
+    for obs in metadata["implemented_observables"]:
+        if obs["observable_name"] == observable_name:
+            data_uncertainties = obs["data_uncertainties"]
+            data_uncertainties_variant = data_uncertainties + ["mc_uncertainties.yaml"]
+            if "variants" in obs:
+                obs["variants"]["mc_uncertainties"] = {"data_uncertainties": data_uncertainties_variant}
+            else:
+                obs["variants"] = {"mc_uncertainties": {"data_uncertainties": data_uncertainties_variant}}
+        else:
+            continue
+
+    # dump updated metadata
+    with open(commondata_path / "metadata.yaml", 'w') as file:
+        yaml.dump(metadata, file)
+
+
+
+dfs_all = {}
+for run_dir in matrix_run_dir.iterdir():
+    dfs = {}
+    if not run_dir.is_dir():
+        continue
+
+    table_dir = pathlib.Path(f"{matrix_run_dir}/{run_dir.stem}/NNLO-run/distributions__NNLO_QCD/")
+    if not table_dir.exists():
+        continue
+    for table in table_dir.iterdir():
+        if table.is_file():
+            df = read_table(table)
+            dfs[table.stem] = df
+
+    dfs_all[run_dir.stem] = dfs
+
+for dataset in dataset_inputs:
+
+    # Total xsec are computed with top++, not matrix
+    if "TOT_X-SEC" in dataset:
+        continue
+    # NORM distribution require special treatment, skip for now
+    if "NORM" in dataset:
+
+        # find the uncertainty in each bin and the sum over bins
+        dataset_abs = dataset.split("-NORM")[0]
+
+        matrix_filename = dataset_abs + matrix_suffix
+        if matrix_filename in dfs_all['run_ttb_8tev_mt_170'].keys():
+            df = dfs_all['run_ttb_8tev_mt_170'][matrix_filename]
+            y_i, delta_y_i = convert_unc_abs_to_norm(df)
+
+
+            commondata_name, observable_name = dataset.rsplit("_", 1)
+            commondata_path = commondata_dir / commondata_name
+            write_commondata_unc(delta_y_i, commondata_path, observable_name)
+
+
+
