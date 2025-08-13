@@ -15,6 +15,7 @@ from ruamel.yaml import YAML
 
 yaml = YAML()
 yaml.preserve_quotes = True
+yaml.width = 4096  # set a very large width to prevent wrapping
 
 # top datasets
 dataset_inputs = {
@@ -91,11 +92,11 @@ def write_commondata_unc(mc_uncs, commondata_path, observable_name):
     Writes the Monte Carlo uncertainties to uncertainties.yaml in commondata format
     """
     mc_dict = {"definitions": {"stat":
-                                   {"description": "Monte Carlo uncertainty",
+                                   {"description": "Monte Carlo uncertainty on the mtop variations",
                                     "treatment": "ADD",
                                     "type": "UNCORR"}}, "bins": [{"stat": mc_unc} for mc_unc in mc_uncs]}
 
-    with open(commondata_path /  "mc_uncertainties.yaml", 'w') as file:
+    with open(commondata_path /  "mc_top_uncertainties.yaml", 'w') as file:
         yaml.dump(mc_dict, file)
 
     # link to metadata
@@ -105,7 +106,7 @@ def write_commondata_unc(mc_uncs, commondata_path, observable_name):
     for obs in metadata["implemented_observables"]:
         if obs["observable_name"] == observable_name:
             data_uncertainties = obs["data_uncertainties"]
-            data_uncertainties_variant = data_uncertainties + ["mc_uncertainties.yaml"]
+            data_uncertainties_variant = data_uncertainties + ["mc_top_uncertainties.yaml"]
             if "variants" in obs:
                 obs["variants"]["mc_uncertainties"] = {"data_uncertainties": data_uncertainties_variant}
             else:
@@ -137,24 +138,49 @@ for run_dir in matrix_run_dir.iterdir():
 
 for dataset in dataset_inputs:
 
+    commondata_name, observable_name = dataset.rsplit("_", 1)
+    commondata_path = commondata_dir / commondata_name
+
     # Total xsec are computed with top++, not matrix
     if "TOT_X-SEC" in dataset:
         continue
-    # NORM distribution require special treatment, skip for now
-    if "NORM" in dataset:
 
-        # find the uncertainty in each bin and the sum over bins
-        dataset_abs = dataset.split("-NORM")[0]
+    # TODO: catr dist
+    if "YTTBAR" in dataset:
+        continue
 
-        matrix_filename = dataset_abs + matrix_suffix
-        if matrix_filename in dfs_all['run_ttb_8tev_mt_170'].keys():
-            df = dfs_all['run_ttb_8tev_mt_170'][matrix_filename]
-            y_i, delta_y_i = convert_unc_abs_to_norm(df)
+    # TODO: 2D dist
+    if observable_name.count("-") > 1:
+        continue
 
+    sqrts = int(dataset.split("_")[2].replace("TEV", ""))
+    mt_vals = [170, 175]
 
-            commondata_name, observable_name = dataset.rsplit("_", 1)
-            commondata_path = commondata_dir / commondata_name
-            write_commondata_unc(delta_y_i, commondata_path, observable_name)
+    # collect MC for each mt variation
+    delta_y_i_mt = {}
+    for mt_val in mt_vals:
+
+        if "NORM" in dataset:
+
+            # find the uncertainty in each bin and the sum over bins
+            dataset_abs = dataset.split("-NORM")[0]
+
+            matrix_filename = dataset_abs + matrix_suffix
+
+            if matrix_filename in dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'].keys():
+                df = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename]
+                _, delta_y_i = convert_unc_abs_to_norm(df)
+                delta_y_i_mt[mt_val] = delta_y_i
+
+    # average mc unc in top variations
+    try:
+        delta_y_i_avg = np.sqrt(0.5 * (delta_y_i_mt[170] ** 2 + delta_y_i_mt[175] ** 2))
+    except KeyError:
+        import pdb; pdb.set_trace()
+
+    # write to commondata folder
+
+    write_commondata_unc(delta_y_i_avg, commondata_path, observable_name)
 
 
 
