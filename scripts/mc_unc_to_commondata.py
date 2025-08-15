@@ -184,6 +184,7 @@ for dataset in dataset_inputs:
             else:
                 matrix_filename = dataset_abs + matrix_suffix
 
+            # the runs ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR-NORM were split in 3, concatenate first
             if dataset == "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR-NORM":
                 dfs = []
                 for i in [1, 2, 3]:
@@ -191,6 +192,15 @@ for dataset in dataset_inputs:
                     df_gm = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename_gm]
                     dfs.append(df_gm)
                 df = pd.concat(dfs, ignore_index=True)
+            # the bins in ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT-NORM need to be merged first
+            elif dataset == "ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT-NORM":
+                matrix_filename_bm = matrix_filename.replace("__NNLO_QCD", f"_bm__NNLO_QCD")
+                df_bm = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename_bm]
+                df_bm = df_bm[["scale-central", "central-error"]]
+                merged_bins = [(0, 1), (2, 3), (4, 7), (9, 10), (11, 13), (14, 15), (17, 18), (19, 20), (21, 22), (24, 27), (28, 29), (30, 31)]
+                scale_central_merged = [df_bm.loc[start:end, "scale-central"].sum() for start, end in merged_bins]
+                central_error_merged = [np.sqrt((df_bm.loc[start:end, "central-error"] ** 2).sum()) for start, end in merged_bins]
+                df = pd.DataFrame({"scale-central": scale_central_merged, "central-error": central_error_merged})
             elif matrix_filename in dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'].keys():
                 df = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename]
 
