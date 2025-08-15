@@ -111,6 +111,18 @@ def write_commondata_unc(mc_uncs, commondata_path, observable_name):
 
             # associate the observable name to the mc uncertainty file
             unc_suffix = data_uncertainties[0].split('uncertainties_')[1]
+
+            # check if the number of bins is the same
+            with open(commondata_path / f"kinematics_{unc_suffix}") as file:
+                kinematics = yaml.load(file)
+            if len(kinematics["bins"]) != len(mc_dict["bins"]):
+                print(f"Number of bins in kinematics ({len(kinematics['bins'])}) does not match "
+                                 f"the number of bins in mc uncertainties ({len(mc_dict['bins'])}) for "
+                                 f"{commondata_path.stem + "_" + observable_name}")
+                print("Removing the last bin in the mc uncertainties...")
+
+                mc_dict["bins"] = mc_dict["bins"][:-1]
+
             mc_unc_filename = f"mc_top_uncertainties_{unc_suffix}"
             with open(commondata_path / mc_unc_filename, 'w') as file:
                 yaml.dump(mc_dict, file)
@@ -172,10 +184,18 @@ for dataset in dataset_inputs:
             else:
                 matrix_filename = dataset_abs + matrix_suffix
 
-            if matrix_filename in dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'].keys():
+            if dataset == "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR-NORM":
+                dfs = []
+                for i in [1, 2, 3]:
+                    matrix_filename_gm = matrix_filename.replace("__NNLO_QCD", f"_gm{i}__NNLO_QCD")
+                    df_gm = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename_gm]
+                    dfs.append(df_gm)
+                df = pd.concat(dfs, ignore_index=True)
+            elif matrix_filename in dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'].keys():
                 df = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename]
-                _, delta_y_i = convert_unc_abs_to_norm(df)
-                delta_y_i_mt[mt_val] = delta_y_i
+
+            _, delta_y_i = convert_unc_abs_to_norm(df)
+            delta_y_i_mt[mt_val] = delta_y_i
 
     # average mc unc in top variations
     try:
