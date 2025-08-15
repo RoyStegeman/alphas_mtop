@@ -197,7 +197,8 @@ for dataset in dataset_inputs:
                 matrix_filename_bm = matrix_filename.replace("__NNLO_QCD", f"_bm__NNLO_QCD")
                 df_bm = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename_bm]
                 df_bm = df_bm[["scale-central", "central-error"]]
-                merged_bins = [(0, 1), (2, 3), (4, 7), (9, 10), (11, 13), (14, 15), (17, 18), (19, 20), (21, 22), (24, 27), (28, 29), (30, 31)]
+                merged_bins = [(0, 1), (2, 3), (4, 7), (8, 8), (9, 10), (11, 13), (14, 15), (16, 16), (17, 18),
+                               (19, 20), (21, 22), (23, 23), (24, 27), (28, 29), (30, 31)]
                 scale_central_merged = [df_bm.loc[start:end, "scale-central"].sum() for start, end in merged_bins]
                 central_error_merged = [np.sqrt((df_bm.loc[start:end, "central-error"] ** 2).sum()) for start, end in merged_bins]
                 df = pd.DataFrame({"scale-central": scale_central_merged, "central-error": central_error_merged})
