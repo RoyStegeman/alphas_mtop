@@ -57,37 +57,6 @@ dataset_inputs = {
 "CMS_TTBAR_13TEV_TOT_X-SEC"
 }
 
-pt_test = np.array([0.002639,
-0.005891,
-0.005954,
-0.004422,
-0.002644,
-0.001431,
-6.64500000e-04,
-3.16700000e-04,
-1.66100000e-04,
-7.39400000e-05,
-4.75e-05,
-1.85e-05,
-6.65100000e-06,
-2.15900000e-06,
-6.50600000e-07,
-7.87200000e-08,
-])
-
-bin_width = np.array([40, 40, 40, 40, 40, 50, 50, 50, 50, 50, 50, 100, 100, 150, 150, 500])
-
-mtt_test_exp = np.array([1.98085000e-03, 3.99172000e-03, 2.00949000e-03, 6.36295000e-04, 1.43808000e-04, 2.71952000e-05])
-mtt_test_theory = np.array([1.2951925e0, 3.3421510e0, 1.7010997e0,5.4686545e-1,1.3677893e-1,2.6385245e-2,2.4443162e-3])
-mtt_integrated = 8.2024355e2
-mtt_test_theory_norm = mtt_test_theory / mtt_integrated
-ratio = mtt_test_exp / mtt_test_theory_norm[:-1]
-# I need to do mtt_test_theory/m
-
-bin_width_mtt = np.array([80, 90, 150, 200, 280, 400])
-
-# finding: np.sum(pt_test * bin_width) = 1
-
 
 # the following datasets were computed only for yttbar > 0, but the exp data also contains yttbar <0
 # so treat these as a special case
