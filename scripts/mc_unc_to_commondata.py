@@ -18,49 +18,117 @@ yaml.preserve_quotes = True
 yaml.width = 4096  # set a very large width to prevent wrapping
 
 # top datasets
-dataset_inputs = {
-"ATLAS_TTBAR_7TEV_TOT_X-SEC",
-"ATLAS_TTBAR_8TEV_2L_DIF_MTTBAR-NORM",
-"ATLAS_TTBAR_8TEV_2L_DIF_YTTBAR-NORM",
-"ATLAS_TTBAR_8TEV_LJ_DIF_MTTBAR-NORM",
-"ATLAS_TTBAR_8TEV_LJ_DIF_PTT-NORM",
-"ATLAS_TTBAR_8TEV_LJ_DIF_YT-NORM",
-"ATLAS_TTBAR_8TEV_LJ_DIF_YTTBAR-NORM",
-"ATLAS_TTBAR_8TEV_TOT_X-SEC",
-"ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-NORM",
-"ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR-NORM",
-"ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR-NORM",
-"ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-NORM",
-"ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT-NORM",
-"ATLAS_TTBAR_13TEV_LJ_DIF_PTT-NORM",
-"ATLAS_TTBAR_13TEV_LJ_DIF_YT-NORM",
-"ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR-NORM",
-"CMS_TTBAR_5TEV_TOT_X-SEC",
-"CMS_TTBAR_7TEV_TOT_X-SEC",
-"CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT-NORM",
-"CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR-NORM",
-"CMS_TTBAR_8TEV_2L_DIF_PTT-YT-NORM",
-"CMS_TTBAR_8TEV_LJ_DIF_MTTBAR-NORM",
-"CMS_TTBAR_8TEV_LJ_DIF_PTT-NORM",
-"CMS_TTBAR_8TEV_LJ_DIF_YT-NORM",
-"CMS_TTBAR_8TEV_LJ_DIF_YTTBAR-NORM",
-"CMS_TTBAR_8TEV_TOT_X-SEC",
-"CMS_TTBAR_13TEV_2L_DIF_MTTBAR-NORM",
-"CMS_TTBAR_13TEV_2L_DIF_PTT-NORM",
-"CMS_TTBAR_13TEV_2L_DIF_YT-NORM",
-"CMS_TTBAR_13TEV_2L_DIF_YTTBAR-NORM",
-"CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-NORM",
-"CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR-NORM",
-"CMS_TTBAR_13TEV_LJ_DIF_PTT-NORM",
-"CMS_TTBAR_13TEV_LJ_DIF_YT-NORM",
-"CMS_TTBAR_13TEV_LJ_DIF_YTTBAR-NORM",
-"CMS_TTBAR_13TEV_TOT_X-SEC"
-}
+# dataset_inputs = [
+# "ATLAS_TTBAR_7TEV_TOT_X-SEC",
+# "ATLAS_TTBAR_8TEV_2L_DIF_MTTBAR-NORM",
+# "ATLAS_TTBAR_8TEV_2L_DIF_YTTBAR-NORM",
+# "ATLAS_TTBAR_8TEV_LJ_DIF_MTTBAR-NORM",
+# "ATLAS_TTBAR_8TEV_LJ_DIF_PTT-NORM",
+# "ATLAS_TTBAR_8TEV_LJ_DIF_YT-NORM",
+# "ATLAS_TTBAR_8TEV_LJ_DIF_YTTBAR-NORM",
+# "ATLAS_TTBAR_8TEV_TOT_X-SEC",
+# "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-NORM",
+# "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR-NORM",
+# "ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR-NORM",
+# "ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-NORM",
+# "ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT-NORM",
+# "ATLAS_TTBAR_13TEV_LJ_DIF_PTT-NORM",
+# "ATLAS_TTBAR_13TEV_LJ_DIF_YT-NORM",
+# "ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR-NORM",
+# "CMS_TTBAR_5TEV_TOT_X-SEC",
+# "CMS_TTBAR_7TEV_TOT_X-SEC",
+# "CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT-NORM",
+# "CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR-NORM",
+# "CMS_TTBAR_8TEV_2L_DIF_PTT-YT-NORM",
+# "CMS_TTBAR_8TEV_LJ_DIF_MTTBAR-NORM",
+# "CMS_TTBAR_8TEV_LJ_DIF_PTT-NORM",
+# "CMS_TTBAR_8TEV_LJ_DIF_YT-NORM",
+# "CMS_TTBAR_8TEV_LJ_DIF_YTTBAR-NORM",
+# "CMS_TTBAR_8TEV_TOT_X-SEC",
+# "CMS_TTBAR_13TEV_2L_DIF_MTTBAR-NORM",
+# "CMS_TTBAR_13TEV_2L_DIF_PTT-NORM",
+# "CMS_TTBAR_13TEV_2L_DIF_YT-NORM",
+# "CMS_TTBAR_13TEV_2L_DIF_YTTBAR-NORM",
+# "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-NORM",
+# "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR-NORM",
+# "CMS_TTBAR_13TEV_LJ_DIF_PTT-NORM",
+# "CMS_TTBAR_13TEV_LJ_DIF_YT-NORM",
+# "CMS_TTBAR_13TEV_LJ_DIF_YTTBAR-NORM",
+# "CMS_TTBAR_13TEV_TOT_X-SEC"
+# ]
+
+dataset_inputs_norm=[
+'CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-NORM',
+'CMS_TTBAR_13TEV_LJ_DIF_YTTBAR-NORM',
+'CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR-NORM',
+'CMS_TTBAR_13TEV_LJ_DIF_PTT-NORM',
+'CMS_TTBAR_13TEV_LJ_DIF_YT-NORM',
+'ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-NORM',
+'ATLAS_TTBAR_13TEV_LJ_DIF_PTT-NORM',
+'ATLAS_TTBAR_13TEV_LJ_DIF_YT-NORM',
+'ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR-NORM',
+'ATLAS_TTBAR_13TEV_LJ_DIF_PTT-YT-NORM',
+'ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT-NORM',
+'ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-NORM',
+'ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR-NORM',
+'ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR-NORM',
+'ATLAS_TTBAR_8TEV_2L_DIF_MTTBAR-NORM',
+'ATLAS_TTBAR_8TEV_2L_DIF_YTTBAR-NORM',
+'CMS_TTBAR_8TEV_2L_DIF_PTT-YT-NORM',
+'CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT-NORM',
+'CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR-NORM',
+'CMS_TTBAR_13TEV_2L_DIF_PTT-NORM',
+'CMS_TTBAR_13TEV_2L_DIF_MTTBAR-NORM',
+'CMS_TTBAR_13TEV_2L_DIF_YT-NORM',
+'CMS_TTBAR_13TEV_2L_DIF_YTTBAR-NORM',
+'CMS_TTBAR_8TEV_LJ_DIF_PTT-NORM',
+'CMS_TTBAR_8TEV_LJ_DIF_YT-NORM',
+'CMS_TTBAR_8TEV_LJ_DIF_YTTBAR-NORM',
+'CMS_TTBAR_8TEV_LJ_DIF_MTTBAR-NORM',
+'ATLAS_TTBAR_8TEV_LJ_DIF_MTTBAR-NORM',
+'ATLAS_TTBAR_8TEV_LJ_DIF_PTT-NORM',
+'ATLAS_TTBAR_8TEV_LJ_DIF_YT-NORM',
+'ATLAS_TTBAR_8TEV_LJ_DIF_YTTBAR-NORM'
+]
+
+# top datasets absolute
+dataset_inputs_abs=[
+'CMS_TTBAR_13TEV_LJ_DIF_MTTBAR',
+'CMS_TTBAR_13TEV_LJ_DIF_YTTBAR',
+'CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR',
+'CMS_TTBAR_13TEV_LJ_DIF_PTT',
+'CMS_TTBAR_13TEV_LJ_DIF_YT',
+'ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR',
+'ATLAS_TTBAR_13TEV_LJ_DIF_PTT',
+'ATLAS_TTBAR_13TEV_LJ_DIF_YT',
+'ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR',
+#'ATLAS_TTBAR_13TEV_LJ_DIF_PTT-YT', # bugged covariance
+'ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT',
+'ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR',
+'ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR',
+'ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR',
+'ATLAS_TTBAR_8TEV_2L_DIF_MTTBAR',
+'ATLAS_TTBAR_8TEV_2L_DIF_YTTBAR',
+'CMS_TTBAR_13TEV_LJ_2016_DIF_YT',
+'CMS_TTBAR_13TEV_2L_DIF_PTT',
+'CMS_TTBAR_13TEV_2L_DIF_MTTBAR',
+'CMS_TTBAR_13TEV_2L_DIF_YT',
+'CMS_TTBAR_13TEV_2L_DIF_YTTBAR',
+# 'CMS_TTBAR_13TEV_2L_138FB-1_DIF_MTTBAR', # we cannot fit this
+# 'CMS_TTBAR_13TEV_2L_138FB-1_DIF_PTT',
+# 'CMS_TTBAR_13TEV_2L_138FB-1_DIF_YT',
+# 'CMS_TTBAR_13TEV_2L_138FB-1_DIF_MTTBAR-YTTBAR',
+'ATLAS_TTBAR_8TEV_LJ_DIF_MTTBAR',
+'ATLAS_TTBAR_8TEV_LJ_DIF_PTT',
+'ATLAS_TTBAR_8TEV_LJ_DIF_YT',
+'ATLAS_TTBAR_8TEV_LJ_DIF_YTTBAR'
+]
 
 
 # the following datasets were computed only for yttbar > 0, but the exp data also contains yttbar <0
 # so treat these as a special case
 yttbar_reflected = ["CMS_TTBAR_8TEV_LJ_DIF_YTTBAR-NORM", "CMS_TTBAR_13TEV_2L_DIF_YTTBAR-NORM"]
+yttbar_reflected_abs = ["CMS_TTBAR_8TEV_LJ_DIF_YTTBAR", "CMS_TTBAR_13TEV_2L_DIF_YTTBAR"]
 
 matrix_suffix = "__NNLO_QCD"
 matrix_prefix_2D = "2D_"
@@ -72,13 +140,13 @@ def read_table(table):
     """
      Reads Monte Carlo uncertainty from MATRIX and returns a dictionary of dataframes
     """
-    df = pd.read_table(table, sep="\s+", header=0, skiprows=0, index_col=False)
+    df = pd.read_table(table, sep="\\s+", header=0, skiprows=0, index_col=False)
     df_columns = df.columns[1:]
     df = df.iloc[:, :-1]
     df.columns = df_columns
     return df
 
-def convert_unc_abs_to_norm(df):
+def find_unc(df, dataset):
     """
     propagates the error
     """
@@ -97,7 +165,16 @@ def convert_unc_abs_to_norm(df):
     delta_sigma_i = x_i * bin_width
     err_delta_sigma_i = err_x_i * bin_width
 
+    if "NORM" not in dataset:
+        if dataset.startswith("CMS_TTBAR_13TEV_LJ_DIF"):
+            conversion_factor = 0.2877   # as prescribed by arXiv:2108.02803, Sec. 3, ln. 7
+            return x_i * fb_to_pb * conversion_factor, err_x_i * fb_to_pb * conversion_factor
+        else:
+            return x_i * fb_to_pb, err_x_i * fb_to_pb
+
+
     S = delta_sigma_i.sum(axis=0)
+
     sum_err_delta_sigma_i_sq = (err_delta_sigma_i ** 2).sum(axis=0)
 
     # propagate error
@@ -121,10 +198,16 @@ def write_commondata_unc(mc_uncs, commondata_path, observable_name):
 
     for obs in metadata["implemented_observables"]:
         if obs["observable_name"] == observable_name:
+
             data_uncertainties = obs["data_uncertainties"]
+            if len(data_uncertainties) == 0:
+                print(f"No data uncertainties found for {commondata_path.stem + '_' + observable_name}, skipping...")
+                continue
 
             # associate the observable name to the mc uncertainty file
+
             unc_suffix = data_uncertainties[0].split('uncertainties_')[1]
+
 
             # check if the number of bins is the same
             with open(commondata_path / f"kinematics_{unc_suffix}") as file:
@@ -171,7 +254,7 @@ for run_dir in matrix_run_dir.iterdir():
 
     dfs_all[run_dir.stem] = dfs
 
-for dataset in dataset_inputs:
+for dataset in dataset_inputs_abs:
 
     commondata_name, observable_name = dataset.rsplit("_", 1)
     commondata_path = commondata_dir / commondata_name
@@ -199,44 +282,76 @@ for dataset in dataset_inputs:
             else:
                 matrix_filename = dataset_abs + matrix_suffix
 
-            # the runs ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR-NORM were split in 3, concatenate first
-            if dataset == "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR-NORM":
-                dfs = []
-                for i in [1, 2, 3]:
-                    matrix_filename_gm = matrix_filename.replace("__NNLO_QCD", f"_gm{i}__NNLO_QCD")
-                    df_gm = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename_gm]
-                    dfs.append(df_gm)
-                df = pd.concat(dfs, ignore_index=True)
-            # the bins in ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT-NORM need to be merged first
-            elif dataset == "ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT-NORM":
+        else: # absolute distribution
+            if dataset.count("-") > 0:  # 2D dist
+                matrix_filename = matrix_prefix_2D + dataset + matrix_suffix
+            elif dataset in yttbar_reflected_abs:  # dist in yttbar
+                matrix_filename = dataset + "_catr" + matrix_suffix
+            else:
+                matrix_filename = dataset + matrix_suffix
 
-                matrix_filename_bm = matrix_filename.replace("__NNLO_QCD", f"_bm__NNLO_QCD")
-                df_bm = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename_bm]
-                df_bm = df_bm[["scale-central", "central-error", "left-edge1", "right-edge1",
-                               "left-edge2", "right-edge2"]]
-                merged_bins = [(0, 1), (2, 3), (4, 7), (8, 8), (9, 10), (11, 13), (14, 15), (16, 16), (17, 18),
-                               (19, 20), (21, 22), (23, 23), (24, 27), (28, 29), (30, 31)]
+        # the runs ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR were split in 3, concatenate first
+        if dataset.startswith("ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR"):
+            dfs = []
+            for i in [1, 2, 3]:
+                matrix_filename_gm = matrix_filename.replace("__NNLO_QCD", f"_gm{i}__NNLO_QCD")
+                df_gm = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename_gm]
+                dfs.append(df_gm)
+            df = pd.concat(dfs, ignore_index=True)
+        # the bins in ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT need to be merged first
+        elif dataset.startswith("ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT"):
 
-                scale_central_merged = [df_bm.loc[start:end, "scale-central"].sum() for start, end in merged_bins]
-                central_error_merged = [np.sqrt((df_bm.loc[start:end, "central-error"] ** 2).sum()) for start, end in merged_bins]
-                bin_merged_1 = [(df_bm.loc[start, "left-edge1"], df_bm.loc[end, "right-edge1"]) for start, end in merged_bins]
-                bin_merged_2 = [(df_bm.loc[start, "left-edge2"], df_bm.loc[end, "right-edge2"]) for start, end in merged_bins]
-                left_edge1_merged = [bin_merged_1[i][0] for i in range(len(bin_merged_1))]
-                right_edge1_merged = [bin_merged_1[i][1] for i in range(len(bin_merged_1))]
-                left_edge2_merged = [bin_merged_2[i][0] for i in range(len(bin_merged_2))]
-                right_edge2_merged = [bin_merged_2[i][1] for i in range(len(bin_merged_2))]
+            matrix_filename_bm = matrix_filename.replace("__NNLO_QCD", f"_bm__NNLO_QCD")
+            df_bm = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename_bm]
+            df_bm = df_bm[["scale-central", "central-error", "left-edge1", "right-edge1",
+                           "left-edge2", "right-edge2"]]
+            merged_bins = [(0, 1), (2, 3), (4, 7), (8, 8), (9, 10), (11, 13), (14, 15), (16, 16), (17, 18),
+                           (19, 20), (21, 22), (23, 23), (24, 27), (28, 29), (30, 31)]
 
+            scale_central_merged = [df_bm.loc[start:end, "scale-central"].sum() for start, end in merged_bins]
+            central_error_merged = [np.sqrt((df_bm.loc[start:end, "central-error"] ** 2).sum()) for start, end
+                                    in merged_bins]
+            bin_merged_1 = [(df_bm.loc[start, "left-edge1"], df_bm.loc[end, "right-edge1"]) for start, end in
+                            merged_bins]
+            bin_merged_2 = [(df_bm.loc[start, "left-edge2"], df_bm.loc[end, "right-edge2"]) for start, end in
+                            merged_bins]
+            left_edge1_merged = [bin_merged_1[i][0] for i in range(len(bin_merged_1))]
+            right_edge1_merged = [bin_merged_1[i][1] for i in range(len(bin_merged_1))]
+            left_edge2_merged = [bin_merged_2[i][0] for i in range(len(bin_merged_2))]
+            right_edge2_merged = [bin_merged_2[i][1] for i in range(len(bin_merged_2))]
 
-                df = pd.DataFrame({"scale-central": scale_central_merged, "central-error": central_error_merged,
-                                   "left-edge1": left_edge1_merged, "right-edge1": right_edge1_merged,
-                                   "left-edge2": left_edge2_merged, "right-edge2": right_edge2_merged})
-            elif matrix_filename in dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'].keys():
-                df = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename]
+            df = pd.DataFrame({"scale-central": scale_central_merged, "central-error": central_error_merged,
+                               "left-edge1": left_edge1_merged, "right-edge1": right_edge1_merged,
+                               "left-edge2": left_edge2_merged, "right-edge2": right_edge2_merged})
+        # bugged covariance
+        # elif dataset.startswith("ATLAS_TTBAR_13TEV_LJ_DIF_PTT-YT"):
+        #     matrix_filename_bm = matrix_filename.replace("__NNLO_QCD", f"_bm__NNLO_QCD")
+        #     df_bm = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename_bm]
+        #     df_bm = df_bm[["scale-central", "central-error", "left-edge1", "right-edge1",
+        #                    "left-edge2", "right-edge2"]]
+        #     merged_bins = [(3, 4), (9, 11), (14, 15), (16, 17)]
+        #
+        #
+        #     scale_central_merged = [df_bm.loc[start:end, "scale-central"].sum() for start, end in merged_bins]
+        #     central_error_merged = [np.sqrt((df_bm.loc[start:end, "central-error"] ** 2).sum()) for start, end
+        #                             in merged_bins]
+        #     bin_merged_1 = [(df_bm.loc[start, "left-edge1"], df_bm.loc[end, "right-edge1"]) for start, end in
+        #                     merged_bins]
+        #     bin_merged_2 = [(df_bm.loc[start, "left-edge2"], df_bm.loc[end, "right-edge2"]) for start, end in
+        #                     merged_bins]
+        #     left_edge1_merged = [bin_merged_1[i][0] for i in range(len(bin_merged_1))]
+        #     right_edge1_merged = [bin_merged_1[i][1] for i in range(len(bin_merged_1))]
+        #     left_edge2_merged = [bin_merged_2[i][0] for i in range(len(bin_merged_2))]
+        #     right_edge2_merged = [bin_merged_2[i][1] for i in range(len(bin_merged_2))]
+        #
+        #     df = pd.DataFrame({"scale-central": scale_central_merged, "central-error": central_error_merged,
+        #                        "left-edge1": left_edge1_merged, "right-edge1": right_edge1_merged,
+        #                        "left-edge2": left_edge2_merged, "right-edge2": right_edge2_merged})
+        elif matrix_filename in dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'].keys():
+            df = dfs_all[f'run_ttb_{sqrts}tev_mt_{mt_val}'][matrix_filename]
 
-
-            y_i, delta_y_i = convert_unc_abs_to_norm(df)
-
-            delta_y_i_mt[mt_val] = delta_y_i
+        y_i, delta_y_i = find_unc(df, dataset)
+        delta_y_i_mt[mt_val] = delta_y_i
 
     # average mc unc in top variations
     try:
@@ -249,7 +364,7 @@ for dataset in dataset_inputs:
 
 
     # 1D dist in yttbar
-    if dataset in yttbar_reflected:
+    if dataset in yttbar_reflected or dataset in yttbar_reflected_abs:
         delta_y_i_avg = pd.concat([delta_y_i_avg.iloc[::-1], delta_y_i_avg], ignore_index=True)
 
 
