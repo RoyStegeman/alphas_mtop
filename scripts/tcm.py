@@ -108,7 +108,6 @@ def compute_posterior(fitname):
     beta_tilde = np.sqrt(covmat_scaling_factor) * (step_size / np.sqrt(2)) * np.array([[1, -1, 0, 0], [0, 0, 1, -1]])
     S_tilde = beta_tilde @ beta_tilde.T
 
-    # TODO: why a npsqrt(2)
     delta_plus = (np.sqrt(covmat_scaling_factor) / np.sqrt(2)) * (
             prior_theorypreds_plus - prior_theorypreds_central
     )
@@ -143,6 +142,26 @@ def compute_posterior(fitname):
         engine="python",
     ).fillna(0)
 
+    theory_covmat_all = pd.read_csv(
+        fit.path / f"tables/datacuts_theory_theorycovmatconfig_theory_covmat_custom.csv",
+        index_col=[0, 1, 2],
+        header=[0, 1, 2],
+        sep="\t|,",
+        encoding="utf-8",
+        engine="python",
+    ).fillna(0)
+
+    theory_covmat_all_index = pd.MultiIndex.from_tuples(
+        [(aa, bb, np.int64(cc)) for aa, bb, cc in theory_covmat_all.index],
+        names=["group", "dataset", "id"],
+    )
+
+    theory_covmat_all = pd.DataFrame(
+        theory_covmat_all.values, index=theory_covmat_all_index, columns=theory_covmat_all_index
+    )
+    theory_covmat_all = theory_covmat_all.reindex(S.index).T.reindex(S.index)
+
+
     stored_covmat = stored_alphas_covmat + stored_mtop_covmat
 
     storedcovmat_index = pd.MultiIndex.from_tuples(
@@ -155,6 +174,8 @@ def compute_posterior(fitname):
         stored_covmat.values, index=storedcovmat_index, columns=storedcovmat_index
     )
     stored_covmat = stored_covmat.reindex(S.index).T.reindex(S.index)
+
+    mhou_covmat = theory_covmat_all - stored_covmat
 
     if not np.allclose(S, stored_covmat):
         print("Reconstructed theory covmat, S, is not the same as the stored covmat!")
@@ -172,10 +193,17 @@ def compute_posterior(fitname):
         **common_dict
     )
 
+    C += mhou_covmat
+
+
+
     # %%
     # Note that mean_prediction is different from the prediction of the mean PDF (i.e. replica0)
     T0 = theorypreds_fit.mean(axis=1)
-    X = np.cov(theorypreds_fit, bias=True)
+    X = np.cov(theorypreds_fit)
+
+    # remove negative eigenmodes from X
+    X, _ = remove_negative_eigenmodes(X, tol=1e-3)
 
     # In the computation we use <D>_rep and not the central value of the data D_exp, though if
     # resample_negative_pseudodata: false
@@ -187,10 +215,11 @@ def compute_posterior(fitname):
 
 
 
+
     invcov = np.linalg.inv(C + S)
 
-    delta_T_tilde = -S_hat @ invcov @ (T0 - dat_reps.mean(axis=1))
-    #delta_T_tilde = -S_hat @ invcov @ (T0 - data_theory_results["data_central"])
+    #delta_T_tilde = -S_hat @ invcov @ (T0 - dat_reps.mean(axis=1))
+    delta_T_tilde = -S_hat @ invcov @ (T0 - data_theory_results["data_central"])
 
     # P_tilde is Eq. 3.38.
     #
@@ -202,6 +231,7 @@ def compute_posterior(fitname):
     central_theory = np.array([mtop_central, alphas_central])
     pred = central_theory + delta_T_tilde
 
+    print_results(pred, P_tilde)
     return pred, P_tilde
 
 
@@ -272,3 +302,47 @@ def confidence_ellipse(
     ellipse.set_transform(transf + ax.transData)
 
     return ax.add_patch(ellipse)
+
+
+def remove_negative_eigenmodes(matrix, tol=1e-12):
+    """
+    Removes negative eigenmodes from a matrix by projecting onto the
+    subspace of non-negative eigenvalues.
+
+    Parameters
+    ----------
+    matrix : (n, n) array_like
+        Symmetric (or Hermitian) matrix.
+    tol : float
+        Tolerance below which eigenvalues are considered zero.
+
+    Returns
+    -------
+    matrix_pos : (n, n) ndarray
+        Matrix reconstructed with only non-negative eigenmodes.
+    eigvals : ndarray
+        Eigenvalues after truncation (negative ones set to 0).
+    """
+    # Ensure the matrix is numpy array
+    A = np.array(matrix, dtype=float)
+
+    # Compute eigen-decomposition
+    eigvals, eigvecs = np.linalg.eigh(A)
+
+    # Zero out negative eigenvalues (or those below tolerance)
+    eigvals_clipped = np.where(eigvals > tol, eigvals, 0.0)
+
+    # Reconstruct the positive semidefinite matrix
+    A_pos = eigvecs @ np.diag(eigvals_clipped) @ eigvecs.T
+
+    return A_pos, eigvals_clipped
+
+def print_results(central_value, cov):
+    central_mtop = central_value[0]
+    central_alphas = central_value[1]
+    sigma_mtop = np.sqrt(cov[0, 0])
+    sigma_alphas = np.sqrt(cov[1, 1])
+    rho = cov[0, 1] / (sigma_mtop * sigma_alphas)
+    print(f"mtop (68%): {central_mtop:.3f} +/- {sigma_mtop:.3f}")
+    print(f"alphas (68%): {central_alphas:.6f} +/- {sigma_alphas:.6f}")
+    print(f"rho: {rho:.3f}\n")
