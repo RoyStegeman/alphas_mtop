@@ -59,6 +59,8 @@ def confidence_ellipse(ax, cov, mean, facecolor=None, confidence_level=95, **kwa
     ax.set_xlim(mean[0] - width, mean[0] + width)
     ax.set_ylim(mean[1] - height, mean[1] + height)
 
+    return width, height
+
 
 
 result_dir = pathlib.Path("./results")
@@ -83,6 +85,13 @@ for dataset_dir in result_dir.iterdir():
         chi2_df = pd.read_csv(dataset_dir / 'chi2.txt', sep='\t', skip_blank_lines=True)
         chi2_df.columns = chi2_df.columns.str.strip()
         results[dataset_name]["chi2"] = chi2_df
+
+        # compute p value for chi2_ttbar
+        ndat = int(chi2_df["ndat"].values[0])
+        chi2_ttbar = chi2_df["chi2 ttbar"].values[0]
+
+        p_value_ttbar = 1 - scipy.stats.chi2.cdf(chi2_ttbar * ndat, ndat)
+        results[dataset_name]["p-value"] = p_value_ttbar
         
 
 
@@ -115,6 +124,12 @@ fig, axes = plt.subplots(
     squeeze=False
 )
 
+# placeholders for limits, to be updated dynamically later
+xlims_left = 1e4 * np.ones((len(observables), len(experiments) + 1), dtype=float)
+xlims_right = np.ones((len(observables), len(experiments) + 1), dtype=float)
+ylims_left = 1e4 * np.ones((len(observables), len(experiments) + 1), dtype=float)
+ylims_right = np.zeros((len(observables), len(experiments) + 1), dtype=float)
+
 for i, obs in enumerate(observables):
     for j, exp in enumerate(experiments):
         ax = axes[i, j]
@@ -131,27 +146,41 @@ for i, obs in enumerate(observables):
                 ndat = int(chi2_df["ndat"].values[0])
                 chi2_ttbar = chi2_df["chi2 ttbar"].values[0]
                 chi2_tot = chi2_df["chi2 tot"].values[0]
+                p_value = results[dataset_name]["p-value"]
+                
 
-                confidence_ellipse(
+                
+
+                width, height = confidence_ellipse(
                     ax, covmat, central_value,
                     edgecolor="C0", facecolor="C0", confidence_level=68
                 )
 
+                # store limits
+                xlims_left[i, j] = central_value[0] - width
+                xlims_right[i, j] = central_value[0] + width
+                ylims_left[i, j] = central_value[1] - height
+                ylims_right[i, j] = central_value[1] + height
+
                 # # add text box with chi2/ndat
                 textstr = r'$\chi^2_{\mathrm{ttbar}}=%.2f$, $\chi^2_{\mathrm{tot}}=%.2f$' % (chi2_ttbar, chi2_tot)
-                textstr_ndat = r'$N_{\mathrm{dat}}=%d$' % (ndat, )
+                textstr += '\n'
+                textstr += r'$n_{\mathrm{dat}}=%d$' % (ndat)
+                textstr_pvalue = r'$p-\mathrm{val}=%.2f$' % (p_value)
                 # these are matplotlib.patch.Patch properties
                 props = dict(facecolor='none', edgecolor='none')
                 # place a text box in upper left in axes coords
                 ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=10,
-                        verticalalignment='top', bbox=props, color='red' if chi2_ttbar > 1.5 else 'black')
+                        verticalalignment='top', bbox=props, color='black')
 
-                ax.text(0.05, 0.05, textstr_ndat, transform=ax.transAxes, fontsize=10,
-                        verticalalignment='bottom', bbox=props)
+                ax.text(0.05, 0.05, textstr_pvalue, transform=ax.transAxes, fontsize=10,
+                        verticalalignment='bottom', bbox=props, color='red' if p_value < 0.05 or p_value > 0.95 else 'black')
 
                 break
         else:
             ax.set_visible(False)  # Hide unused subplots
+
+
 
 # plot the average of of the ellipses at the end of each row
 for i, obs in enumerate(observables):
@@ -161,25 +190,40 @@ for i, obs in enumerate(observables):
     for j, exp in enumerate(experiments):
         for dataset_name in results:
             if exp in dataset_name and obs in dataset_name:
-                if results[dataset_name]["chi2"]["chi2 ttbar"].values[0] > 1.5:
+                if results[dataset_name]["p-value"] < 0.05 or results[dataset_name]["p-value"] > 0.95:
                     continue
                 means.append(results[dataset_name]["central_value"])
                 covs.append(results[dataset_name]["covmat"])
                 break
     if means:
+        n_exp = len(experiments)
         means = np.array(means)
         covs = np.array(covs)
         avg_mean = np.mean(means, axis=0)
-        avg_cov = np.mean(covs, axis=0)
-        confidence_ellipse(
+        avg_cov = np.sum(covs / (n_exp ** 2), axis=0)
+        width, height = confidence_ellipse(
             ax, avg_cov, avg_mean,
             edgecolor="C1", facecolor="C1", confidence_level=68
         )
         ax.set_xlabel(r"$m_t$", fontsize=14)
         ax.set_ylabel(r"$\alpha_s$", fontsize=14)
         ax.set_visible(True)
+
+        # store limits
+        xlims_left[i, -1] = avg_mean[0] - width
+        xlims_right[i, -1] = avg_mean[0] + width
+        ylims_left[i, -1] = avg_mean[1] - height
+        ylims_right[i, -1] = avg_mean[1] + height
+
     else:
         ax.set_visible(False)
+
+# set same x and y limits for all plots
+for i in range(len(observables)):
+    for j in range(len(experiments) + 1):
+        if axes[i, j].get_visible():
+            axes[i, j].set_xlim(np.min(xlims_left[:, j]), np.max(xlims_right[:, j]))
+            axes[i, j].set_ylim(np.min(ylims_left[i, :]), np.max(ylims_right[i, :]))
 
 plt.tight_layout(rect=[0.1, 0.1, 0.95, 0.9])  # leave margins for labels
 
