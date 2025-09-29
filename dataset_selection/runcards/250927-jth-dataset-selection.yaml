@@ -152,20 +152,20 @@ resample_negative_pseudodata: false
 
 ################################################################################
 datacuts:
-  t0pdfset: 250926-jth-dataset-selection-iter1
+  t0pdfset: 250927-jth-dataset-selection-iter2
   q2min: 3.49
   w2min: 12.5
 
 ################################################################################
 # NNLO QCD EXA evolution
 theory:
-  theoryid: 40_009_000
-  t0theoryid: 40_009_000
+  theoryid: 40_010_006
+  t0theoryid: 40_010_006
 
 
 theorycovmatconfig:
-  point_prescriptions: [mtop 172.5 170 175, alphas 0118 0120 0116, 7 point]
-  pdf: 250926-jth-dataset-selection-iter1
+  point_prescriptions: [mtop 172.5 170 175, alphas 0120 0122 0118, 7 point]
+  pdf: 250927-jth-dataset-selection-iter2
   use_thcovmat_in_fitting: true
   use_thcovmat_in_sampling: true
 
