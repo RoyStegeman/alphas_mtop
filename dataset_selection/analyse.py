@@ -2,11 +2,12 @@ import pathlib
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy
+import pandas as pd
 
 from matplotlib import patches, transforms, rc
 # use latex
-rc('text', usetex=True)
-rc('font', family='serif', size=12)
+# rc('text', usetex=True)
+# rc('font', family='serif', size=12)
 from matplotlib.patches import Ellipse
 
 def confidence_ellipse(ax, cov, mean, facecolor=None, confidence_level=95, **kwargs):
@@ -78,6 +79,13 @@ for dataset_dir in result_dir.iterdir():
         covmat = np.loadtxt(dataset_dir / f"{dataset_dir.name}_covmat.dat")
         results[dataset_name]["covmat"] = covmat
 
+        # read chi2 info
+        chi2_df = pd.read_csv(dataset_dir / 'chi2.txt', sep='\t', skip_blank_lines=True)
+        chi2_df.columns = chi2_df.columns.str.strip()
+        results[dataset_name]["chi2"] = chi2_df
+        
+
+
 # collect all experiments and observables
 experiments = set()
 observables = set()
@@ -102,8 +110,8 @@ observables = sorted(observables)
 
 
 fig, axes = plt.subplots(
-    len(observables), len(experiments),
-    figsize=(4 * len(experiments), 4 * len(observables)),
+    len(observables), len(experiments) + 1,
+    figsize=(4 * (len(experiments) + 1), 4 * len(observables)),
     squeeze=False
 )
 
@@ -118,15 +126,60 @@ for i, obs in enumerate(observables):
             if exp in dataset_name and obs in dataset_name:
                 central_value = results[dataset_name]["central_value"]
                 covmat = results[dataset_name]["covmat"]
+                
+                chi2_df = results[dataset_name]["chi2"]
+                ndat = int(chi2_df["ndat"].values[0])
+                chi2_ttbar = chi2_df["chi2 ttbar"].values[0]
+                chi2_tot = chi2_df["chi2 tot"].values[0]
 
                 confidence_ellipse(
                     ax, covmat, central_value,
                     edgecolor="C0", facecolor="C0", confidence_level=68
                 )
 
+                # # add text box with chi2/ndat
+                textstr = r'$\chi^2_{\mathrm{ttbar}}=%.2f$, $\chi^2_{\mathrm{tot}}=%.2f$' % (chi2_ttbar, chi2_tot)
+                textstr_ndat = r'$N_{\mathrm{dat}}=%d$' % (ndat, )
+                # these are matplotlib.patch.Patch properties
+                props = dict(facecolor='none', edgecolor='none')
+                # place a text box in upper left in axes coords
+                ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=10,
+                        verticalalignment='top', bbox=props, color='red' if chi2_ttbar > 1.5 else 'black')
+
+                ax.text(0.05, 0.05, textstr_ndat, transform=ax.transAxes, fontsize=10,
+                        verticalalignment='bottom', bbox=props)
+
                 break
         else:
             ax.set_visible(False)  # Hide unused subplots
+
+# plot the average of of the ellipses at the end of each row
+for i, obs in enumerate(observables):
+    ax = axes[i, -1]  # last column
+    means = []
+    covs = []
+    for j, exp in enumerate(experiments):
+        for dataset_name in results:
+            if exp in dataset_name and obs in dataset_name:
+                if results[dataset_name]["chi2"]["chi2 ttbar"].values[0] > 1.5:
+                    continue
+                means.append(results[dataset_name]["central_value"])
+                covs.append(results[dataset_name]["covmat"])
+                break
+    if means:
+        means = np.array(means)
+        covs = np.array(covs)
+        avg_mean = np.mean(means, axis=0)
+        avg_cov = np.mean(covs, axis=0)
+        confidence_ellipse(
+            ax, avg_cov, avg_mean,
+            edgecolor="C1", facecolor="C1", confidence_level=68
+        )
+        ax.set_xlabel(r"$m_t$", fontsize=14)
+        ax.set_ylabel(r"$\alpha_s$", fontsize=14)
+        ax.set_visible(True)
+    else:
+        ax.set_visible(False)
 
 plt.tight_layout(rect=[0.1, 0.1, 0.95, 0.9])  # leave margins for labels
 
@@ -157,10 +210,11 @@ for i, obs in enumerate(observables):
     )
 
 # --- add column labels (x-axis, at the top) ---
+experiments += ["Average"]
 for j, exp in enumerate(experiments):
     x_center = (axes[0, j].get_position().x0 + axes[0, j].get_position().x1) / 2
     fig.text(
         x_center, top_edge + 0.02, exp, va="bottom", ha="center"
     )
 
-plt.savefig("alphas_mtop_0120_norm.pdf")
+plt.savefig("250929-jth-alphas_mtop_dataset_selection.pdf")
