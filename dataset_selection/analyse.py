@@ -94,7 +94,6 @@ for dataset_dir in result_dir.iterdir():
         results[dataset_name]["p-value"] = p_value_ttbar
         
 
-
 # collect all experiments and observables
 experiments = set()
 observables = set()
@@ -138,7 +137,8 @@ for i, obs in enumerate(observables):
 
         # Find the matching dataset_name
         for dataset_name in results:
-            if exp in dataset_name and obs in dataset_name:
+            dataset_name_obs = dataset_name.split("_")[-1]
+            if exp in dataset_name and obs == dataset_name_obs:
                 central_value = results[dataset_name]["central_value"]
                 covmat = results[dataset_name]["covmat"]
                 
@@ -189,7 +189,8 @@ for i, obs in enumerate(observables):
     covs = []
     for j, exp in enumerate(experiments):
         for dataset_name in results:
-            if exp in dataset_name and obs in dataset_name:
+            dataset_name_obs = dataset_name.split("_")[-1]
+            if exp in dataset_name and obs == dataset_name_obs:
                 if results[dataset_name]["p-value"] < 0.05 or results[dataset_name]["p-value"] > 0.95:
                     continue
                 means.append(results[dataset_name]["central_value"])
@@ -200,7 +201,7 @@ for i, obs in enumerate(observables):
         means = np.array(means)
         covs = np.array(covs)
         avg_mean = np.mean(means, axis=0)
-        avg_cov = np.sum(covs / (n_exp ** 2), axis=0)
+        avg_cov = np.sum(covs, axis=0) / n_exp**2
         width, height = confidence_ellipse(
             ax, avg_cov, avg_mean,
             edgecolor="C1", facecolor="C1", confidence_level=68
@@ -254,7 +255,7 @@ for i, obs in enumerate(observables):
     )
 
 # --- add column labels (x-axis, at the top) ---
-experiments += ["Average"]
+experiments += ["Statistical average"]
 for j, exp in enumerate(experiments):
     x_center = (axes[0, j].get_position().x0 + axes[0, j].get_position().x1) / 2
     fig.text(
