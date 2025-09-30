@@ -201,7 +201,8 @@ for i, obs in enumerate(observables):
         means = np.array(means)
         covs = np.array(covs)
         avg_mean = np.mean(means, axis=0)
-        avg_cov = np.sum(covs, axis=0) / n_exp**2
+
+        avg_cov = np.sum(covs, axis=0) / len(means)**2
         width, height = confidence_ellipse(
             ax, avg_cov, avg_mean,
             edgecolor="C1", facecolor="C1", confidence_level=68
