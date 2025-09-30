@@ -6,8 +6,8 @@ import pandas as pd
 
 from matplotlib import patches, transforms, rc
 # use latex
-# rc('text', usetex=True)
-# rc('font', family='serif', size=12)
+rc("font", **{"family": "sans-serif", "sans-serif": ["Helvetica"]})
+rc("text", **{"usetex": True, "latex.preamble": r"\usepackage{amssymb}"})
 from matplotlib.patches import Ellipse
 
 def confidence_ellipse(ax, cov, mean, facecolor=None, confidence_level=95, **kwargs):
@@ -111,7 +111,7 @@ for dataset_dir in result_dir.iterdir():
 experiments = set()
 observables = set()
 for dataset_name in results.keys():
-    if "NORM" in dataset_name:
+    if "NORM" not in dataset_name:
         continue
     if "DIF" in dataset_name:
         parts = dataset_name.split("_")
@@ -176,7 +176,7 @@ for i, exp in enumerate(experiments):
                 ylims_right[i, j] = central_value[1] + 0.7 * height
 
                 # # add text box with chi2/ndat
-                textstr = r'$\chi^2_{\mathrm{ttbar}}=%.2f$, $\chi^2_{\mathrm{tot}}=%.2f$' % (chi2_ttbar, chi2_tot)
+                textstr = r'$\chi^2_{t\bar{t}}=%.2f$, $\chi^2_{\mathrm{tot}}=%.2f$' % (chi2_ttbar, chi2_tot)
                 textstr += '\n'
                 textstr += r'$n_{\mathrm{dat}}=%d$' % (ndat)
                 textstr_pvalue = r'$p-\mathrm{val}=%.2f$' % (p_value)
@@ -244,7 +244,7 @@ for i in range(len(experiments) + 1):
 
 plt.tight_layout(rect=[0.1, 0.1, 0.95, 0.9])  # leave margins for labels
 
-label_dict = { "MTTBAR": r"$d\sigma/d m_{t\bar{t}}$", "MTTBAR-NORM": r"$1/\sigma d\sigma m_{t\bar{t}}$",
+x_label_dict = { "MTTBAR": r"$d\sigma/d m_{t\bar{t}}$", "MTTBAR-NORM": r"$1/\sigma d\sigma m_{t\bar{t}}$",
                "MTTBAR-PTT": r"$d^2\sigma/dm_{t\bar{t}}dp_T^t$",
                "MTTBAR-PTT-NORM": r"$1/\sigma d^2\sigma/dm_{t\bar{t}}dp_T^t$",
                "MTTBAR-YT-NORM": r"$1/\sigma d^2\sigma/dm_{t\bar{t}}dy_{t\bar{t}}$",
@@ -258,6 +258,16 @@ label_dict = { "MTTBAR": r"$d\sigma/d m_{t\bar{t}}$", "MTTBAR-NORM": r"$1/\sigma
                "YTTBAR": r"$d\sigma/dy_{t\bar{t}}$",
                "YTTBAR-NORM": r"$1/\sigma d\sigma/d y_{t\bar{t}}$"}
 
+y_label_dict = {"ATLAS_TTBAR_13TEV_HADR": r"$\mathrm{ATLAS}\;t\bar{t}\;13\;\mathrm{TeV}\;\mathrm{hadr.}$",
+"ATLAS_TTBAR_13TEV_LJ": r"$\mathrm{ATLAS}\;t\bar{t}\;13\;\mathrm{TeV}\;\ell+j$",
+"ATLAS_TTBAR_8TEV_2L": r"$\mathrm{ATLAS}\;t\bar{t}\;8\;\mathrm{TeV}\;2\ell$",
+"ATLAS_TTBAR_8TEV_LJ": r"$\mathrm{ATLAS}\;t\bar{t}\;8\;\mathrm{TeV}\;\ell + j$",
+"CMS_TTBAR_13TEV_2L": r"$\mathrm{CMS}\;t\bar{t}\;13\;\mathrm{TeV}\;2\ell$",
+"CMS_TTBAR_13TEV_LJ": r"$\mathrm{CMS}\;t\bar{t}\;13\;\mathrm{TeV}\;\ell + j$",
+"CMS_TTBAR_8TEV_2L": r"$\mathrm{CMS}\;t\bar{t}\;8\;\mathrm{TeV}\;2\ell$",
+"CMS_TTBAR_8TEV_LJ": r"$\mathrm{CMS}\;t\bar{t}\;8\;\mathrm{TeV}\;\ell + j$",
+"Statistical average": r"$\mathrm{Statistical}\;\mathrm{average}$"}
+
 
 # --- compute grid edges ---
 left_edge = min(ax.get_position().x0 for row in axes for ax in row if ax.get_visible())
@@ -268,7 +278,7 @@ experiments += ["Statistical average"]
 for i, exp in enumerate(experiments):
     y_center = (axes[i, 0].get_position().y0 + axes[i, 0].get_position().y1) / 2
     fig.text(
-        left_edge - 0.07, y_center, exp, va="center", ha="right", rotation=90
+        left_edge - 0.07, y_center, y_label_dict[exp], va="center", ha="right", rotation=90
     )
 
 # --- add column labels (x-axis, at the top) ---
@@ -276,7 +286,7 @@ for i, exp in enumerate(experiments):
 for j, obs in enumerate(observables):
     x_center = (axes[0, j].get_position().x0 + axes[0, j].get_position().x1) / 2
     fig.text(
-        x_center, top_edge + 0.02, label_dict[obs], va="bottom", ha="center"
+        x_center, top_edge + 0.02, x_label_dict[obs], va="bottom", ha="center"
     )
 
 for i in range(len(experiments)):
@@ -303,4 +313,4 @@ for i in range(len(experiments)):
 plt.subplots_adjust(wspace=0.15, hspace=0.15)
 
 
-plt.savefig("250930-jth-alphas_mtop_dataset_selection_abs_only_filtered.pdf")
+plt.savefig("250930-jth-alphas_mtop_dataset_selection_norm_only_filtered.pdf")
