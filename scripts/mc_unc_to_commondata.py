@@ -17,46 +17,6 @@ yaml = YAML()
 yaml.preserve_quotes = True
 yaml.width = 4096  # set a very large width to prevent wrapping
 
-# top datasets
-# dataset_inputs = [
-# "ATLAS_TTBAR_7TEV_TOT_X-SEC",
-# "ATLAS_TTBAR_8TEV_2L_DIF_MTTBAR-NORM",
-# "ATLAS_TTBAR_8TEV_2L_DIF_YTTBAR-NORM",
-# "ATLAS_TTBAR_8TEV_LJ_DIF_MTTBAR-NORM",
-# "ATLAS_TTBAR_8TEV_LJ_DIF_PTT-NORM",
-# "ATLAS_TTBAR_8TEV_LJ_DIF_YT-NORM",
-# "ATLAS_TTBAR_8TEV_LJ_DIF_YTTBAR-NORM",
-# "ATLAS_TTBAR_8TEV_TOT_X-SEC",
-# "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-NORM",
-# "ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR-NORM",
-# "ATLAS_TTBAR_13TEV_HADR_DIF_YTTBAR-NORM",
-# "ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-NORM",
-# "ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT-NORM",
-# "ATLAS_TTBAR_13TEV_LJ_DIF_PTT-NORM",
-# "ATLAS_TTBAR_13TEV_LJ_DIF_YT-NORM",
-# "ATLAS_TTBAR_13TEV_LJ_DIF_YTTBAR-NORM",
-# "CMS_TTBAR_5TEV_TOT_X-SEC",
-# "CMS_TTBAR_7TEV_TOT_X-SEC",
-# "CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YT-NORM",
-# "CMS_TTBAR_8TEV_2L_DIF_MTTBAR-YTTBAR-NORM",
-# "CMS_TTBAR_8TEV_2L_DIF_PTT-YT-NORM",
-# "CMS_TTBAR_8TEV_LJ_DIF_MTTBAR-NORM",
-# "CMS_TTBAR_8TEV_LJ_DIF_PTT-NORM",
-# "CMS_TTBAR_8TEV_LJ_DIF_YT-NORM",
-# "CMS_TTBAR_8TEV_LJ_DIF_YTTBAR-NORM",
-# "CMS_TTBAR_8TEV_TOT_X-SEC",
-# "CMS_TTBAR_13TEV_2L_DIF_MTTBAR-NORM",
-# "CMS_TTBAR_13TEV_2L_DIF_PTT-NORM",
-# "CMS_TTBAR_13TEV_2L_DIF_YT-NORM",
-# "CMS_TTBAR_13TEV_2L_DIF_YTTBAR-NORM",
-# "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-NORM",
-# "CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-YTTBAR-NORM",
-# "CMS_TTBAR_13TEV_LJ_DIF_PTT-NORM",
-# "CMS_TTBAR_13TEV_LJ_DIF_YT-NORM",
-# "CMS_TTBAR_13TEV_LJ_DIF_YTTBAR-NORM",
-# "CMS_TTBAR_13TEV_TOT_X-SEC"
-# ]
-
 dataset_inputs_norm=[
 'CMS_TTBAR_13TEV_LJ_DIF_MTTBAR-NORM',
 'CMS_TTBAR_13TEV_LJ_DIF_YTTBAR-NORM',
@@ -114,10 +74,10 @@ dataset_inputs_abs=[
 'CMS_TTBAR_13TEV_2L_DIF_MTTBAR',
 'CMS_TTBAR_13TEV_2L_DIF_YT',
 'CMS_TTBAR_13TEV_2L_DIF_YTTBAR',
-# 'CMS_TTBAR_13TEV_2L_138FB-1_DIF_MTTBAR', # we cannot fit this
-# 'CMS_TTBAR_13TEV_2L_138FB-1_DIF_PTT',
-# 'CMS_TTBAR_13TEV_2L_138FB-1_DIF_YT',
-# 'CMS_TTBAR_13TEV_2L_138FB-1_DIF_MTTBAR-YTTBAR',
+'CMS_TTBAR_13TEV_2L_138FB-1_DIF_MTTBAR', # we cannot fit this
+'CMS_TTBAR_13TEV_2L_138FB-1_DIF_PTT',
+'CMS_TTBAR_13TEV_2L_138FB-1_DIF_YT',
+'CMS_TTBAR_13TEV_2L_138FB-1_DIF_MTTBAR-YTTBAR',
 'ATLAS_TTBAR_8TEV_LJ_DIF_MTTBAR',
 'ATLAS_TTBAR_8TEV_LJ_DIF_PTT',
 'ATLAS_TTBAR_8TEV_LJ_DIF_YT',
@@ -254,6 +214,7 @@ for run_dir in matrix_run_dir.iterdir():
 
     dfs_all[run_dir.stem] = dfs
 
+
 for dataset in dataset_inputs_abs:
 
     commondata_name, observable_name = dataset.rsplit("_", 1)
@@ -283,7 +244,7 @@ for dataset in dataset_inputs_abs:
                 matrix_filename = dataset_abs + matrix_suffix
 
         else: # absolute distribution
-            if dataset.count("-") > 0:  # 2D dist
+            if dataset.split("DIF")[1].count("-") > 0:  # 2D dist
                 matrix_filename = matrix_prefix_2D + dataset + matrix_suffix
             elif dataset in yttbar_reflected_abs:  # dist in yttbar
                 matrix_filename = dataset + "_catr" + matrix_suffix
@@ -323,6 +284,9 @@ for dataset in dataset_inputs_abs:
             df = pd.DataFrame({"scale-central": scale_central_merged, "central-error": central_error_merged,
                                "left-edge1": left_edge1_merged, "right-edge1": right_edge1_merged,
                                "left-edge2": left_edge2_merged, "right-edge2": right_edge2_merged})
+        elif dataset.startswith("CMS_TTBAR_13TEV_2L_138FB-1"):
+            df = dfs_all[f'run_ttb_13tev_CMS_2402_08486_mt_{mt_val}'][matrix_filename]
+
         # bugged covariance
         # elif dataset.startswith("ATLAS_TTBAR_13TEV_LJ_DIF_PTT-YT"):
         #     matrix_filename_bm = matrix_filename.replace("__NNLO_QCD", f"_bm__NNLO_QCD")
