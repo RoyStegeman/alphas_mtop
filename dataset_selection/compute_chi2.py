@@ -3,7 +3,7 @@ import pathlib
 import sys
 
 #dataset = sys.argv[1]
-result_dir = pathlib.Path("/data/theorie/jthoeve/physics_projects/alphas_mtop/dataset_selection/results")
+result_dir = pathlib.Path("/data/theorie/jthoeve/physics_projects/alphas_mtop/results/tcm_results")
 pdf = sys.argv[1]#f"250926-jth-dataset-selection-with-{dataset}"
 dataset = pdf.split("with-")[1]
 #t0pdfset = "250926-jth-dataset-selection-iter1"
@@ -20,7 +20,11 @@ chi2_df_tot = chi2_df_table.loc[("Total", "Total")]
 chi2_tot = chi2_df_tot.iloc[1]
 ndat = chi2_df_ttbar.iloc[:, 0].values[0]
 
+z_score = API.covmat_stability_characteristic(dataset_input={'dataset': dataset}, theoryid=40010006, use_cuts="internal")
+
 # write to a file
+pathlib.Path.mkdir(result_dir / pdf, parents=True, exist_ok=True)
+
 with open(result_dir / pdf / "chi2.txt", "w") as f:
-    f.write("ndat \t chi2 ttbar \t chi2 tot\n")
-    f.write(f"{ndat}\t{chi2_ttbar}\t{chi2_tot}\n")
+    f.write("ndat \t chi2 ttbar \t chi2 tot \t z-score \n")
+    f.write(f"{ndat}\t{chi2_ttbar}\t{chi2_tot}\t{z_score}\n")
