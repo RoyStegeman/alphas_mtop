@@ -7,23 +7,25 @@ from matplotlib import patches, transforms, rc
 from matplotlib.patches import Ellipse
 
 # ---------------- Configuration ---------------- #
-RESULT_DIR = pathlib.Path("./results")
-USE_NORMALISED = False
+RESULT_DIR = pathlib.Path("../results/tcm_results")
+USE_NORMALISED = True
 ELLIPSE_MARGIN = 0.7
-OUTPUT_FILE = "251001-jth-alphas_mtop_dataset_selection_abs.pdf"
+EXPERIMENT="ATLAS"  # options: "ATLAS_CMS", "ATLAS", "CMS"
+NORM_KEY = "NORM" if USE_NORMALISED else "ABS"
+OUTPUT_FILE = f"251027-jth-alphas_mtop_dataset_selection_{NORM_KEY}_{EXPERIMENT}.pdf"
 
-rc("font", **{"family": "sans-serif", "sans-serif": ["Helvetica"], "size": 12})
+rc("font", **{"family": "sans-serif", "sans-serif": ["Helvetica"], "size": 14})
 rc("text", **{"usetex": True, "latex.preamble": r"\usepackage{amssymb}"})
 
 x_label_dict = { "MTTBAR": r"$d\sigma/d m_{t\bar{t}}$", "MTTBAR-NORM": r"$1/\sigma d\sigma m_{t\bar{t}}$",
-               "MTTBAR-PTT": r"$d^2\sigma/dm_{t\bar{t}}dp_T^t$",
+               "MTTBAR-PTT": r"$d^2\sigma/d(m_{t\bar{t}}dp_T^t)$",
                "MTTBAR-PTT-NORM": r"$1/\sigma d^2\sigma/dm_{t\bar{t}}dp_T^t$",
-               "MTTBAR-YT-NORM": r"$1/\sigma d^2\sigma/dm_{t\bar{t}}dy_{t\bar{t}}$",
-               "MTTBAR-YTTBAR": r"$d^2\sigma/dm_{t\bar{t}}dy_{t\bar{t}}$",
-               "MTTBAR-YTTBAR-NORM": r"$1/\sigma d^2\sigma/dm_{t\bar{t}}dy_{t\bar{t}}$",
+               "MTTBAR-YT-NORM": r"$1/\sigma d^2\sigma/d(m_{t\bar{t}}dy_{t})$",
+               "MTTBAR-YTTBAR": r"$d^2\sigma/d(m_{t\bar{t}}dy_{t\bar{t}})$",
+               "MTTBAR-YTTBAR-NORM": r"$1/\sigma d^2\sigma/d(m_{t\bar{t}}dy_{t\bar{t}})$",
                 "PTT": r"$d\sigma/dp_T^t$",
                "PTT-NORM": r"$1/\sigma d\sigma/d p_T^t$",
-               "PTT-YT-NORM": r"$1/\sigma d^2\sigma/dp_T^t dy_t$",
+               "PTT-YT-NORM": r"$1/\sigma d^2\sigma/d(p_T^t dy_t)$",
                "YT": r"$d\sigma/d y_t$",
                "YT-NORM": r"$1/\sigma d\sigma/d y_t$",
                "YTTBAR": r"$d\sigma/dy_{t\bar{t}}$",
@@ -37,11 +39,21 @@ y_label_dict = {"ATLAS_TTBAR_13TEV_HADR": r"$\mathrm{ATLAS}\;t\bar{t}\;13\;\math
 "CMS_TTBAR_13TEV_LJ": r"$\mathrm{CMS}\;t\bar{t}\;13\;\mathrm{TeV}\;\ell + j$",
 "CMS_TTBAR_8TEV_2L": r"$\mathrm{CMS}\;t\bar{t}\;8\;\mathrm{TeV}\;2\ell$",
 "CMS_TTBAR_8TEV_LJ": r"$\mathrm{CMS}\;t\bar{t}\;8\;\mathrm{TeV}\;\ell + j$",
+"CMS_TTBAR_13TEV_2L_138FB-1": r"$\mathrm{CMS}\;t\bar{t}\;13\;\mathrm{TeV}\;2\ell\;138\;\mathrm{fb}^{-1}$",
 "Combination": r"$\mathrm{Combination}$"}
 
 
 def get_suffix():
-    return "NORM" if USE_NORMALISED else ""
+    return "-NORM" if USE_NORMALISED else ""
+
+
+combined_dirs = {
+    f"MTTBAR{get_suffix()}": f"251021-jth-dataset-selection-with-{EXPERIMENT}_TTBAR_MTTBAR{get_suffix()}",
+    f"PTT{get_suffix()}": f"251021-jth-dataset-selection-with-{EXPERIMENT}_TTBAR_PTT{get_suffix()}",
+    f"YT{get_suffix()}": f"251021-jth-dataset-selection-with-{EXPERIMENT}_TTBAR_YT{get_suffix()}",
+    f"YTTBAR{get_suffix()}": f"251021-jth-dataset-selection-with-{EXPERIMENT}_TTBAR_YTTBAR{get_suffix()}",
+    f"MTTBAR-YTTBAR{get_suffix()}": f"251021-jth-dataset-selection-with-{EXPERIMENT}_TTBAR_MTTBAR-YTTBAR{get_suffix()}",
+}
 
 
 def load_central_value(path):
@@ -68,15 +80,26 @@ def confidence_ellipse(ax, cov, mean, facecolor=None, confidence_level=95, **kwa
 
     ax.add_patch(ellipse)
     ax.scatter(mean[0], mean[1], marker="x", color="black")
-    ax.grid(True)
+    ax.grid(True, which='major', linestyle='-', linewidth=0.8)
+    ax.minorticks_on()
+    from matplotlib.ticker import AutoMinorLocator
+    ax.xaxis.set_minor_locator(AutoMinorLocator(4))  # number of minor intervals per major tick
+    ax.yaxis.set_minor_locator(AutoMinorLocator(4))
+    ax.grid(which='minor', linestyle=':', linewidth=0.6, alpha=0.7)
     return width, height
 
 
 def filter_results(result_dir):
     results = {}
     for dataset_dir in result_dir.iterdir():
-        if "250927" not in dataset_dir.name or not dataset_dir.is_dir():
+        if "251014" not in dataset_dir.name or not dataset_dir.is_dir():
             continue
+
+        if EXPERIMENT != "EXPERIMENT":
+            if EXPERIMENT == "ATLAS" and "CMS" in dataset_dir.name:
+                continue
+            if EXPERIMENT == "CMS" and "ATLAS" in dataset_dir.name:
+                continue
 
         dataset_name = dataset_dir.name.split("-with-")[1]
         chi2_df = pd.read_csv(dataset_dir / "chi2.txt", sep="\t", skip_blank_lines=True)
@@ -84,17 +107,19 @@ def filter_results(result_dir):
 
         ndat = int(chi2_df["ndat"].values[0])
         chi2_ttbar = chi2_df["chi2 ttbar"].values[0]
+        z_score = chi2_df["z-score"].values[0]
+
         p_value_ttbar = 1 - scipy.stats.chi2.cdf(chi2_ttbar * ndat, ndat)
 
-        if 0.05 < p_value_ttbar < 0.95:
-            results[dataset_name] = {
-                "p-value": p_value_ttbar,
-                "chi2": chi2_df,
-                "central_value": load_central_value(dataset_dir / f"{dataset_dir.name}_central_value.dat"),
-                "covmat": np.loadtxt(dataset_dir / f"{dataset_dir.name}_covmat.dat"),
-            }
-        else:
-            print(f"Skipping {dataset_name} with p={p_value_ttbar:.3f}")
+
+        results[dataset_name] = {
+            "p-value": p_value_ttbar,
+            "chi2": chi2_df,
+            "z-score": z_score,
+            "central_value": load_central_value(dataset_dir / f"{dataset_dir.name}_central_value.dat"),
+            "covmat": np.loadtxt(dataset_dir / f"{dataset_dir.name}_covmat.dat"),
+        }
+
     return results
 
 def plot_single_experiment(ax, dataset_info, exp, obs):
@@ -115,15 +140,16 @@ def plot_single_experiment(ax, dataset_info, exp, obs):
     ndat = int(dataset_info["chi2"]["ndat"].values[0])
     textstr = r'$\chi^2_{t\bar{t}}=%.2f$, $n_{\mathrm{dat}}=%d$' % (chi2_ttbar, ndat)
     p_value = dataset_info["p-value"]
-    textstr_pvalue = r'$p-\mathrm{val}=%.2f$' % (p_value)
+    z_score = dataset_info["z-score"]
+    textstr_zscore = r'$z=%.2f$' % (z_score)
     # these are matplotlib.patch.Patch properties
     props = dict(facecolor='none', edgecolor='none')
     # place a text box in upper left in axes coords
     ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=10,
             verticalalignment='top', bbox=props, color='black')
 
-    ax.text(0.05, 0.05, textstr_pvalue, transform=ax.transAxes, fontsize=10,
-            verticalalignment='bottom', bbox=props, color='red' if p_value < 0.05 or p_value > 0.95 else 'black')
+    ax.text(0.05, 0.05, textstr_zscore, transform=ax.transAxes, fontsize=10,
+            verticalalignment='bottom', bbox=props)
 
     return cv, width, height
 
@@ -131,41 +157,53 @@ def plot_single_experiment(ax, dataset_info, exp, obs):
 def plot_statistical_average(ax_row, experiments, observables, results):
     avg_means, avg_widths, avg_heights = {}, {}, {}
     for j, obs in enumerate(observables):
-        means, covs = [], []
+        central_values, covs = [], []
+        datasets = []
         for exp in experiments:
             for dataset_name in results:
-                if exp in dataset_name and dataset_name.endswith(obs):
-                    if results[dataset_name]["p-value"] < 0.05 or results[dataset_name]["p-value"] > 0.95:
-                        continue
-                    means.append(results[dataset_name]["central_value"])
+                if exp in dataset_name and dataset_name.split("DIF_")[-1] == obs:
+                    central_values.append(results[dataset_name]["central_value"])
                     covs.append(results[dataset_name]["covmat"])
+                    datasets.append(dataset_name)
                     break
+        central_values = np.array(central_values)
 
-        if means:
-            means, covs = np.array(means), np.array(covs)
-            avg_mean = np.mean(means, axis=0)
-            avg_cov = np.sum(covs, axis=0) / len(means)**2
-            width, height = confidence_ellipse(ax_row[j], avg_cov, avg_mean, edgecolor="C1", facecolor="C1", confidence_level=68)
-            avg_means[obs] = avg_mean
+        if len(central_values) > 0:
+
+            inv_covs = np.array([np.linalg.inv(cov) for cov in covs])
+            inv_covs_summed = np.sum(inv_covs, axis=0)
+            cov_comb = np.linalg.inv(inv_covs_summed)
+
+            temp1 = np.array([inv_cov @ c for inv_cov, c in zip(inv_covs, central_values)])
+            avg_comb = cov_comb @ np.sum(temp1, axis=0)
+
+            width, height = confidence_ellipse(ax_row[j], cov_comb, avg_comb, edgecolor="C1", facecolor="C1", confidence_level=68)
+            avg_means[obs] = avg_comb
             avg_widths[obs] = width
             avg_heights[obs] = height
     return avg_means, avg_widths, avg_heights
 
-def add_combined_analysis(ax_row, observables, result_dir):
-    combined_dirs = {
-        f"MTTBAR{get_suffix()}": f"251001-jth-dataset-selection-with-DIF_MTTBAR{get_suffix()}",
-        f"PTT{get_suffix()}": f"251001-jth-dataset-selection-with-DIF_PTT{get_suffix()}",
-        f"YT{get_suffix()}": f"251001-jth-dataset-selection-with-DIF_YT{get_suffix()}",
-        f"YTTBAR{get_suffix()}": f"251001-jth-dataset-selection-with-DIF_YTTBAR{get_suffix()}",
-    }
+def add_combined_analysis(ax_row, observables, result_dir, xlims_left, xlims_right, ylims_left, ylims_right):
 
     for obs, dir_name in combined_dirs.items():
         if obs not in observables:
             continue
         j = observables.index(obs)
-        central_value = load_central_value(result_dir / dir_name / f"{dir_name}_central_value.dat")
-        covmat = np.loadtxt(result_dir / dir_name / f"{dir_name}_covmat.dat")
-        confidence_ellipse(ax_row[j], covmat, central_value, edgecolor="C2", facecolor="C2", confidence_level=68)
+        try:
+            central_value = load_central_value(result_dir / dir_name / f"{dir_name}_central_value.dat")
+            covmat = np.loadtxt(result_dir / dir_name / f"{dir_name}_covmat.dat")
+        except FileNotFoundError:
+            continue
+        width, height = confidence_ellipse(ax_row[j], covmat, central_value, edgecolor="C2", facecolor="C2", confidence_level=68)
+        xlim_left = central_value[0] - ELLIPSE_MARGIN * width
+        xlim_right = central_value[0] + ELLIPSE_MARGIN * width
+        ylim_left = central_value[1] - ELLIPSE_MARGIN * height
+        ylim_right = central_value[1] + ELLIPSE_MARGIN * height
+
+        # xlims_left[-1, j] = min(xlim_left, *xlims_left[-1, :])
+        # xlims_right[-1, j] = max(xlim_right, *xlims_right[-1, :])
+        ylims_left[-1, j] = min(ylim_left, *ylims_left[-1, :])
+        ylims_right[-1, j] = max(ylim_right, *ylims_right[-1,:])
 
 
 # ---------------- Main ---------------- #
@@ -182,6 +220,7 @@ def main():
             experiments.add("_".join(parts[:-2]))
 
     experiments, observables = sorted(experiments), sorted(observables)
+
 
     fig, axes = plt.subplots(len(experiments) + 1, len(observables),
                              figsize=(3 * len(observables), 3 * (len(experiments) + 1)),
@@ -219,7 +258,7 @@ def main():
             ylims_right[-1, j] = cv[1] + height
 
     # add combined analysis to the last row
-    add_combined_analysis(axes[-1], observables, RESULT_DIR)
+    add_combined_analysis(axes[-1], observables, RESULT_DIR, xlims_left, xlims_right, ylims_left, ylims_right)
 
     # --- compute grid edges ---
     left_edge = min(ax.get_position().x0 for row in axes for ax in row if ax.get_visible())
@@ -238,7 +277,7 @@ def main():
     for j, obs in enumerate(observables):
         x_center = (axes[0, j].get_position().x0 + axes[0, j].get_position().x1) / 2
         fig.text(
-            x_center + 0.035, top_edge + 0.02, x_label_dict[obs], va="bottom", ha="center", fontsize=14
+            x_center + 0.035, top_edge + 0.05, x_label_dict[obs], va="bottom", ha="center", fontsize=16
         )
 
 
@@ -269,6 +308,7 @@ def main():
     # set same x and y limits for all plots
 
     # set same x and y limits across columns and rows
+
     for i in range(len(experiments)):
         for j in range(len(observables)):
             if axes[i, j].get_visible():
