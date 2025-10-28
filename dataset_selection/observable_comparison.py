@@ -10,9 +10,15 @@ rc("text", **{"usetex": True, "latex.preamble": r"\usepackage{amssymb}"})
 
 RESULT_DIR = pathlib.Path("../results/tcm_results")
 USE_NORMALISED = False
-EXPERIMENT = "CMS"
 RESULT_DIR = pathlib.Path("../results/tcm_results")
-DATE = "251021" if EXPERIMENT == "ATLAS" else "251022"
+
+if USE_NORMALISED:
+    x_min, x_max = 168, 179
+    y_min, y_max = 0.118, 0.1225
+else:
+    x_min, x_max = 168, 180.5
+    y_min, y_max = 0.1175, 0.1225
+
 
 def get_suffix():
     return "-NORM" if USE_NORMALISED else ""
@@ -49,9 +55,12 @@ def confidence_ellipse(ax, cov, mean, facecolor=None, confidence_level=95, **kwa
     ax.grid(which='minor', linestyle=':', linewidth=0.6, alpha=0.7)
     return width, height
 
-legend_elements = []
+legend_elements = {}
 latex_dict = {"YT": r"$y_t$", "PTT": r"$p_T^t$", "MTTBAR": r"$m_{t\bar{t}}$", "YTTBAR": r"$y_{t\bar{t}}$",
-                "MTTBAR-PTT": r"$(m_{t\bar{t}}, p_T^t)$", "MTTBAR-YTTBAR": r"$(m_{t\bar{t}}, y_{t\bar{t}})$"}
+                "MTTBAR-PTT": r"$(m_{t\bar{t}}, p_T^t)$", "MTTBAR-YTTBAR": r"$(m_{t\bar{t}}, y_{t\bar{t}})$",
+                "YT-NORM": r"$y_t$", "PTT-NORM": r"$p_T^t$", "MTTBAR-NORM": r"$m_{t\bar{t}}$", "YTTBAR-NORM": r"$y_{t\bar{t}}$",
+                "MTTBAR-PTT-NORM": r"$(m_{t\bar{t}}, p_T^t)$", "MTTBAR-YTTBAR-NORM": r"$(m_{t\bar{t}}, y_{t\bar{t}})$",
+              "MTTBAR-YT-NORM": r"$(m_{t\bar{t}}, y_t)$", "PTT-YT-NORM": r"$(p_T^t, y_t)$"}
 
 fig, axes = plt.subplots(3, 1,
                              figsize=(9 , 5 * 2),
@@ -60,7 +69,7 @@ fig, axes = plt.subplots(3, 1,
 def add_combined_analysis(ax, result_dir, experiment):
 
     date = "251021" if experiment == "ATLAS" else "251022"
-    colors = ["C0", "C1", "C2", "C3", "C4", "C5"]
+    colors = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]
 
     combined_dirs = {
         f"YT{get_suffix()}": f"{date}-jth-dataset-selection-with-{experiment}_TTBAR_YT{get_suffix()}",
@@ -69,6 +78,8 @@ def add_combined_analysis(ax, result_dir, experiment):
         f"YTTBAR{get_suffix()}": f"{date}-jth-dataset-selection-with-{experiment}_TTBAR_YTTBAR{get_suffix()}",
         f"MTTBAR-PTT{get_suffix()}": f"{date}-jth-dataset-selection-with-{experiment}_TTBAR_MTTBAR-PTT{get_suffix()}",
         f"MTTBAR-YTTBAR{get_suffix()}": f"{date}-jth-dataset-selection-with-{experiment}_TTBAR_MTTBAR-YTTBAR{get_suffix()}",
+        f"MTTBAR-YT{get_suffix()}": f"{date}-jth-dataset-selection-with-{experiment}_TTBAR_MTTBAR-YT{get_suffix()}",
+        f"PTT-YT{get_suffix()}": f"{date}-jth-dataset-selection-with-{experiment}_TTBAR_PTT-YT{get_suffix()}",
     }
 
     for i, (obs, dir_name) in enumerate(combined_dirs.items()):
@@ -80,11 +91,12 @@ def add_combined_analysis(ax, result_dir, experiment):
         except FileNotFoundError:
             continue
         confidence_ellipse(ax, covmat, central_value, confidence_level=68, facecolor=colors[i], edgecolor=colors[i])
-        if experiment == "ATLAS":
 
+        if obs not in legend_elements:
             face_rgba = (*plt.cm.colors.to_rgba(colors[i])[:3], 0.3)
             edge_rgba = (*plt.cm.colors.to_rgba(colors[i])[:3], 1.0)
-            legend_elements.append(patches.Patch(facecolor=face_rgba, edgecolor=edge_rgba, label=latex_dict[obs]))
+            legend_elements[obs] = patches.Patch(facecolor=face_rgba, edgecolor=edge_rgba, label=latex_dict[obs])
+
 
 
 # get the unique legend elements
@@ -103,8 +115,8 @@ for i, axi in enumerate(axes.flatten()):
         exp_label = r"$\mathbf{ATLAS+CMS}$"
         axi.set_xlabel(r"$m_t\;\mathrm{[GeV]}$")
     add_combined_analysis(axi, RESULT_DIR, experiment)
-    axi.set_xlim(168, 180.5)
-    axi.set_ylim(0.1175, 0.1225)
+    axi.set_xlim(x_min, x_max)
+    axi.set_ylim(y_min, y_max)
 
     axi.set_ylabel(r"$\alpha_s(m_Z)$")
 
@@ -113,13 +125,13 @@ for i, axi in enumerate(axes.flatten()):
     axi.text(0.97, 0.05, r"$\mathbf{NNLO}+\mathbf{MHOU}$", transform=axi.transAxes, fontsize=17,
             verticalalignment='bottom', bbox=props, color='black', horizontalalignment='right')
 
-
+legend_elements = list(legend_elements.values())
 fig.legend(handles=legend_elements, loc="upper center", fontsize=17, frameon=False, bbox_to_anchor=(0.5, 0.98),
-           ncol=3)
+           ncol=np.ceil(len(legend_elements) / 2))
 
 
 
 
-fig.savefig(f"observable_comparison{get_suffix()}.pdf")
+fig.savefig(f"observable_comparison_NNLO_MHOU{get_suffix()}.pdf")
 
 
