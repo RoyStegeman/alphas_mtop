@@ -153,6 +153,28 @@ def plot_single_experiment(ax, dataset_info, exp, obs):
 
     return cv, width, height
 
+def plot_pdf4lhc_combination(ax_row, experiments, observables, results):
+
+    for j, obs in enumerate(observables):
+        datasets = []
+        samples_combined = []
+        for exp in experiments:
+            for dataset_name in results:
+                if exp in dataset_name and dataset_name.split("DIF_")[-1] == obs:
+                    samples = np.random.multivariate_normal(results[dataset_name]["central_value"],
+                                                         results[dataset_name]["covmat"], size=1000)
+                    samples_combined.append(samples)
+                    datasets.append(dataset_name)
+                    break
+        if len(samples_combined) == 1:
+            continue
+        samples_combined = np.vstack(samples_combined).T
+
+        if len(samples) > 0:
+            cov_comb = np.cov(samples_combined)
+            avg_comb = np.mean(samples_combined, axis=1)
+            confidence_ellipse(ax_row[j], cov_comb, avg_comb, edgecolor="C4", facecolor="C4", confidence_level=68)
+
 
 def plot_statistical_average(ax_row, experiments, observables, results):
     avg_means, avg_widths, avg_heights = {}, {}, {}
@@ -176,17 +198,25 @@ def plot_statistical_average(ax_row, experiments, observables, results):
 
             temp1 = np.array([inv_cov @ c for inv_cov, c in zip(inv_covs, central_values)])
             avg_comb = cov_comb @ np.sum(temp1, axis=0)
+            if len(central_values) == 1:
+                width, height = confidence_ellipse(ax_row[j], cov_comb, avg_comb, edgecolor="C0", facecolor="C0",
+                                                   confidence_level=68)
+            else:
+                width, height = confidence_ellipse(ax_row[j], cov_comb, avg_comb, edgecolor="C1", facecolor="C1",
+                                                   confidence_level=68)
 
-            width, height = confidence_ellipse(ax_row[j], cov_comb, avg_comb, edgecolor="C1", facecolor="C1", confidence_level=68)
             avg_means[obs] = avg_comb
             avg_widths[obs] = width
             avg_heights[obs] = height
     return avg_means, avg_widths, avg_heights
 
-def add_combined_analysis(ax_row, observables, result_dir, xlims_left, xlims_right, ylims_left, ylims_right):
+def add_combined_tcm_analysis(ax_row, observables, result_dir, results):
 
     for obs, dir_name in combined_dirs.items():
         if obs not in observables:
+            continue
+        datasets = [dataset for dataset in results.keys() if obs in dataset]
+        if len(datasets) == 1:
             continue
         j = observables.index(obs)
         try:
@@ -195,15 +225,11 @@ def add_combined_analysis(ax_row, observables, result_dir, xlims_left, xlims_rig
         except FileNotFoundError:
             continue
         width, height = confidence_ellipse(ax_row[j], covmat, central_value, edgecolor="C2", facecolor="C2", confidence_level=68)
-        xlim_left = central_value[0] - ELLIPSE_MARGIN * width
-        xlim_right = central_value[0] + ELLIPSE_MARGIN * width
-        ylim_left = central_value[1] - ELLIPSE_MARGIN * height
-        ylim_right = central_value[1] + ELLIPSE_MARGIN * height
-
-        # xlims_left[-1, j] = min(xlim_left, *xlims_left[-1, :])
-        # xlims_right[-1, j] = max(xlim_right, *xlims_right[-1, :])
-        ylims_left[-1, j] = min(ylim_left, *ylims_left[-1, :])
-        ylims_right[-1, j] = max(ylim_right, *ylims_right[-1,:])
+        # ylim_left = central_value[1] - ELLIPSE_MARGIN * height
+        # ylim_right = central_value[1] + ELLIPSE_MARGIN * height
+        #
+        # ylims_left[-1, j] = min(ylim_left, *ylims_left[-1, :])
+        # ylims_right[-1, j] = max(ylim_right, *ylims_right[-1,:])
 
 
 # ---------------- Main ---------------- #
@@ -248,7 +274,13 @@ def main():
                 ax.set_visible(False)
 
     # add statistical average to last row
+    plot_pdf4lhc_combination(axes[-1], experiments, observables, results)
+
+    # add combined analysis to the last row
+    add_combined_tcm_analysis(axes[-1], observables, RESULT_DIR, results)
+
     avg_means, avg_widths, avg_heights = plot_statistical_average(axes[-1], experiments, observables, results)
+
     for j, obs in enumerate(observables):
         if obs in avg_means:
             cv, width, height = avg_means[obs], avg_widths[obs], avg_heights[obs]
@@ -257,20 +289,12 @@ def main():
             ylims_left[-1, j] = cv[1] - height
             ylims_right[-1, j] = cv[1] + height
 
-    # add combined analysis to the last row
-    add_combined_analysis(axes[-1], observables, RESULT_DIR, xlims_left, xlims_right, ylims_left, ylims_right)
-
     # --- compute grid edges ---
-    left_edge = min(ax.get_position().x0 for row in axes for ax in row if ax.get_visible())
     top_edge = max(ax.get_position().y1 for row in axes for ax in row if ax.get_visible())
 
     # --- add row labels (y-axis) ---
     experiments += ["Combination"]
-    for i, exp in enumerate(experiments):
-        y_center = (axes[i, 0].get_position().y0 + axes[i, 0].get_position().y1) / 2
-        fig.text(
-            left_edge - 0.07, y_center + 0.02, y_label_dict[exp], va="center", ha="right", rotation=90, fontsize=14
-        )
+
 
     # --- add column labels (x-axis, at the top) ---
 
@@ -319,13 +343,28 @@ def main():
 
 
     plt.tight_layout(rect=[0.1, 0.1, 0.95, 0.9])
-
     plt.subplots_adjust(wspace=0.1, hspace=0.1)
 
+    # --- compute grid edges ---
+    left_edge = min(ax.get_position().x0 for row in axes for ax in row if ax.get_visible())
+
+    # --- add row labels (y-axis) ---
+    # experiments += ["Combination"]
+    for i, exp in enumerate(experiments):
+        y_center = (axes[i, 0].get_position().y0 + axes[i, 0].get_position().y1) / 2
+
+        fig.text(
+            left_edge - 0.06, y_center, y_label_dict[exp], va="center", ha="center", rotation=90, fontsize=14,
+            rotation_mode="anchor"
+        )
+
+
+
     legend_elements = [
-        patches.Patch(facecolor="C0", edgecolor="C0", alpha=0.3, label=r"$\mathrm{Individual\;analysis}$"),
+        patches.Patch(facecolor="C0", edgecolor="C0", alpha=0.3, label=r"$\mathrm{Individual\;TCM\;analysis}$"),
+        patches.Patch(facecolor="C2", edgecolor="C2", alpha=0.3, label=r"$\mathrm{Combined\;TCM\;analysis}$"),
         patches.Patch(facecolor="C1", edgecolor="C1", alpha=0.3, label=r"$\mathrm{Statistical\;average}$"),
-        patches.Patch(facecolor="C2", edgecolor="C2", alpha=0.3, label=r"$\mathrm{Combined\;analysis}$"),
+        patches.Patch(facecolor="C4", edgecolor="C4", alpha=0.3, label=r"$\mathrm{PDF4LHC}\textnormal{-}\mathrm{like}$"),
     ]
     fig.legend(handles=legend_elements, loc="lower center", bbox_to_anchor=(0.5, 0.06),
                ncol=len(legend_elements), fontsize=17, frameon=False)
