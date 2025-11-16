@@ -54,6 +54,17 @@ atlas_cms_fits = {
     "PTT-YT": "251022-jth-dataset-selection-with-ATLAS_CMS_TTBAR_PTT-YT",
 }
 
+label_dict = {"ATLAS_TTBAR_13TEV_HADR": r"$\mathrm{ATLAS}\;t\bar{t}\;13\;\mathrm{TeV}\;\mathrm{hadr.}$",
+"ATLAS_TTBAR_13TEV_LJ": r"$\mathrm{ATLAS}\;t\bar{t}\;13\;\mathrm{TeV}\;\ell+j$",
+"ATLAS_TTBAR_8TEV_2L": r"$\mathrm{ATLAS}\;t\bar{t}\;8\;\mathrm{TeV}\;2\ell$",
+"ATLAS_TTBAR_8TEV_LJ": r"$\mathrm{ATLAS}\;t\bar{t}\;8\;\mathrm{TeV}\;\ell + j$",
+"CMS_TTBAR_13TEV_2L": r"$\mathrm{CMS}\;t\bar{t}\;13\;\mathrm{TeV}\;2\ell$",
+"CMS_TTBAR_13TEV_LJ": r"$\mathrm{CMS}\;t\bar{t}\;13\;\mathrm{TeV}\;\ell + j$",
+"CMS_TTBAR_8TEV_2L": r"$\mathrm{CMS}\;t\bar{t}\;8\;\mathrm{TeV}\;2\ell$",
+"CMS_TTBAR_8TEV_LJ": r"$\mathrm{CMS}\;t\bar{t}\;8\;\mathrm{TeV}\;\ell + j$",
+"CMS_TTBAR_13TEV_2L_138FB-1": r"$\mathrm{CMS}\;t\bar{t}\;13\;\mathrm{TeV}\;2\ell\;138\;\mathrm{fb}^{-1}$",
+"Combination": r"$\mathrm{Combination}$"}
+
 
 for fits in [atlas_fits, cms_fits, atlas_cms_fits]:
     for obs, fit_name in fits.items():
@@ -83,9 +94,10 @@ for fits in [atlas_fits, cms_fits, atlas_cms_fits]:
 
             x_label = metadata.plotting.x_label
             y_label = metadata.plotting.y_label
-            title = metadata.plotting.dataset_label
+            #title = metadata.plotting.dataset_label
 
-            ax_main.set_title(title)
+            #ax_main.set_title(title)
+            ax_main.set_title(label_dict[ds["dataset"].split("_DIF")[0]])
             ax_main.set_ylabel(y_label)
             ax_main.set_xticklabels([])
             ax_main.grid(True)
@@ -112,7 +124,8 @@ for fits in [atlas_fits, cms_fits, atlas_cms_fits]:
             ]
             ax_main.legend(handles=legend_handles)
 
-            ax_main.set_ylim(data.central_value.min(), data.central_value.max())
+            delta_y = 0.1 * (data.central_value.max() + 2 * data.std_error.max() - data.central_value.min())
+            ax_main.set_ylim(data.central_value.min() - delta_y, data.central_value.max() + delta_y)
             ax_main.set_xlim(x.min(), x.max())
 
             ratio = data.central_value / theory.central_value
@@ -122,8 +135,8 @@ for fits in [atlas_fits, cms_fits, atlas_cms_fits]:
             ax_ratio.grid(True)
             ratio_min, ratio_max = 1, 1
             for xi, cv_data, se_data, cv_theory, se_theory in zip(x, data.central_value, data.std_error, theory.central_value, theory.std_error):
-                rect_data = Rectangle((xi, (cv_data - se_data) / cv_data), 1, 2.0 * se_data / cv_data, facecolor="C0", alpha=0.15, edgecolor="C0")
-                rect_theory = Rectangle((xi, (cv_theory - se_theory) / cv_data), 1, 2.0 * se_theory / cv_data, facecolor="C1", alpha=0.15, edgecolor="C1")
+                rect_data = Rectangle((xi, (cv_data - se_data) / cv_data), 1, 2.0 * se_data / cv_data, facecolor="C0", alpha=0.3, edgecolor="C0")
+                rect_theory = Rectangle((xi, (cv_theory - se_theory) / cv_data), 1, 2.0 * se_theory / cv_data, facecolor="C1", alpha=0.3, edgecolor="C1")
                 ratio_min = min(ratio_min, (cv_theory - se_theory) / cv_data, (cv_data - se_data) / cv_data)
                 ratio_max = max(ratio_max, (cv_data + se_data) / cv_data, (cv_theory + se_theory) / cv_data)
                 ax_ratio.add_patch(rect_data)
