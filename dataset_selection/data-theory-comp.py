@@ -6,46 +6,83 @@ import yaml
 from matplotlib import rc
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Patch
+import subprocess
+
 
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica'], 'size': 16})
 rc('text', usetex=True)
 
 
 baseline_fit = "250927-jth-dataset-selection-iter2"
+USE_NORMALISED = False
+order = "N3LO"
 
-# ATLAS
-atlas_fits = {
-    "YT": "251021-jth-dataset-selection-with-ATLAS_TTBAR_YT",
-    "PTT": "251021-jth-dataset-selection-with-ATLAS_TTBAR_PTT",
-    "MTTBAR": "251021-jth-dataset-selection-with-ATLAS_TTBAR_MTTBAR",
-    "MTTBAR-cut": "251105-jth-dataset-selection-with-ATLAS_TTBAR_MTTBAR-cut",
-    "YTTBAR": "251021-jth-dataset-selection-with-ATLAS_TTBAR_YTTBAR",
-    "MTTBAR-PTT": "251014-jth-dataset-selection-with-ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT",
-    "MTTBAR-YTTBAR": "251014-jth-dataset-selection-with-ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR",
-    "MTTBAR-YTTBAR-cut": "251105-jth-dataset-selection-with-ATLAS_TTBAR_MTTBAR-YTTBAR-cut",
-}
+def get_suffix():
+    return "-NORM" if USE_NORMALISED else ""
 
-# CMS
-cms_fits = {
-    "YT": "251022-jth-dataset-selection-with-CMS_TTBAR_YT",
-    "PTT": "251022-jth-dataset-selection-with-CMS_TTBAR_PTT",
-    "MTTBAR": "251022-jth-dataset-selection-with-CMS_TTBAR_MTTBAR",
-    "MTTBAR-cut": "251105-jth-dataset-selection-with-CMS_TTBAR_MTTBAR-cut",
-    "YTTBAR": "251022-jth-dataset-selection-with-CMS_TTBAR_YTTBAR",
-    "MTTBAR-YTTBAR": "251022-jth-dataset-selection-with-CMS_TTBAR_MTTBAR-YTTBAR",
-    "MTTBAR-YTTBAR-cut": "251105-jth-dataset-selection-with-CMS_TTBAR_MTTBAR-YTTBAR-cut",
-}
-
-# ATLAS + CMS
-atlas_cms_fits = {
-    "YT": "251022-jth-dataset-selection-with-ATLAS_CMS_TTBAR_YT",
-    "PTT": "251022-jth-dataset-selection-with-ATLAS_CMS_TTBAR_PTT",
-    "MTTBAR": "251022-jth-dataset-selection-with-ATLAS_CMS_TTBAR_MTTBAR",
-    "MTTBAR-cut": "251105-jth-dataset-selection-with-ATLAS_CMS_TTBAR_MTTBAR-cut",
-    "YTTBAR": "251022-jth-dataset-selection-with-ATLAS_CMS_TTBAR_YTTBAR",
-    "MTTBAR-YTTBAR": "251022-jth-dataset-selection-with-ATLAS_CMS_TTBAR_MTTBAR-YTTBAR",
-    "MTTBAR-YTTBAR-cut": "251105-jth-dataset-selection-with-ATLAS_CMS_TTBAR_MTTBAR-YTTBAR-cut"
-}
+combined_dirs = {
+    "NNLO": {
+        "ATLAS": {
+            f"YT{get_suffix()}": f"251021-jth-dataset-selection-with-ATLAS_TTBAR_YT{get_suffix()}",
+            f"PTT{get_suffix()}": f"251021-jth-dataset-selection-with-ATLAS_TTBAR_PTT{get_suffix()}",
+            #f"MTTBAR{get_suffix()}": f"251021-jth-dataset-selection-with-ATLAS_TTBAR_MTTBAR{get_suffix()}",
+            f"MTTBAR-cut": f"251105-jth-dataset-selection-with-ATLAS_TTBAR_MTTBAR-cut",
+            f"YTTBAR{get_suffix()}": f"251021-jth-dataset-selection-with-ATLAS_TTBAR_YTTBAR{get_suffix()}",
+            f"MTTBAR-PTT{get_suffix()}": f"251014-jth-dataset-selection-with-ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT{get_suffix()}",
+            #f"MTTBAR-YTTBAR{get_suffix()}": f"251014-jth-dataset-selection-with-ATLAS_TTBAR_13TEV_HADR_DIF_MTTBAR-YTTBAR{get_suffix()}",
+            f"MTTBAR-YTTBAR-cut": f"251105-jth-dataset-selection-with-ATLAS_TTBAR_MTTBAR-YTTBAR-cut",
+        },
+        "CMS": {
+            f"YT{get_suffix()}": f"251022-jth-dataset-selection-with-CMS_TTBAR_YT{get_suffix()}",
+            f"PTT{get_suffix()}": f"251022-jth-dataset-selection-with-CMS_TTBAR_PTT{get_suffix()}",
+            #f"MTTBAR{get_suffix()}": f"251022-jth-dataset-selection-with-CMS_TTBAR_MTTBAR{get_suffix()}",
+            f"MTTBAR-cut": f"251105-jth-dataset-selection-with-CMS_TTBAR_MTTBAR-cut",
+            f"YTTBAR{get_suffix()}": f"251022-jth-dataset-selection-with-CMS_TTBAR_YTTBAR{get_suffix()}",
+            #f"MTTBAR-YTTBAR{get_suffix()}": f"251022-jth-dataset-selection-with-CMS_TTBAR_MTTBAR-YTTBAR{get_suffix()}",
+            f"MTTBAR-YTTBAR-cut": f"251105-jth-dataset-selection-with-CMS_TTBAR_MTTBAR-YTTBAR-cut",
+        },
+        "ATLAS_CMS": {
+            f"YT{get_suffix()}": f"251022-jth-dataset-selection-with-ATLAS_CMS_TTBAR_YT{get_suffix()}",
+            f"PTT{get_suffix()}": f"251022-jth-dataset-selection-with-ATLAS_CMS_TTBAR_PTT{get_suffix()}",
+            #f"MTTBAR{get_suffix()}": f"251022-jth-dataset-selection-with-ATLAS_CMS_TTBAR_MTTBAR{get_suffix()}",
+            f"MTTBAR-cut": f"251105-jth-dataset-selection-with-ATLAS_CMS_TTBAR_MTTBAR-cut",
+            f"YTTBAR{get_suffix()}": f"251022-jth-dataset-selection-with-ATLAS_CMS_TTBAR_YTTBAR{get_suffix()}",
+            #f"MTTBAR-YTTBAR{get_suffix()}": f"251022-jth-dataset-selection-with-ATLAS_CMS_TTBAR_MTTBAR-YTTBAR{get_suffix()}",
+            f"MTTBAR-YTTBAR-cut": f"251105-jth-dataset-selection-with-ATLAS_CMS_TTBAR_MTTBAR-YTTBAR-cut",
+            f"MTTBAR-PTT{get_suffix()}": f"251014-jth-dataset-selection-with-ATLAS_TTBAR_13TEV_LJ_DIF_MTTBAR-PTT{get_suffix()}",
+        }
+    },
+    "N3LO": {
+        "ATLAS": {
+            f"YT{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-ATLAS_TTBAR_YT{get_suffix()}",
+            f"PTT{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-ATLAS_TTBAR_PTT{get_suffix()}",
+            #f"MTTBAR{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-ATLAS_TTBAR_MTTBAR{get_suffix()}",
+            f"MTTBAR-cut": f"251118-jth-dataset-selection-N3LO-with-ATLAS_TTBAR_MTTBAR-cut",
+            f"YTTBAR{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-ATLAS_TTBAR_YTTBAR{get_suffix()}",
+            f"MTTBAR-PTT{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-ATLAS_TTBAR_MTTBAR-PTT{get_suffix()}",
+            #f"MTTBAR-YTTBAR{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-ATLAS_TTBAR_MTTBAR-YTTBAR{get_suffix()}",
+            f"MTTBAR-YTTBAR-cut": f"251118-jth-dataset-selection-N3LO-with-ATLAS_TTBAR_MTTBAR-YTTBAR-cut",
+        },
+        "CMS": {
+            f"YT{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-CMS_TTBAR_YT{get_suffix()}",
+            f"PTT{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-CMS_TTBAR_PTT{get_suffix()}",
+            #f"MTTBAR{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-CMS_TTBAR_MTTBAR{get_suffix()}",
+            f"MTTBAR-cut": f"251118-jth-dataset-selection-N3LO-with-CMS_TTBAR_MTTBAR-cut",
+            f"YTTBAR{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-CMS_TTBAR_YTTBAR{get_suffix()}",
+            #f"MTTBAR-YTTBAR{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-CMS_TTBAR_MTTBAR-YTTBAR{get_suffix()}",
+            f"MTTBAR-YTTBAR-cut": f"251118-jth-dataset-selection-N3LO-with-CMS_TTBAR_MTTBAR-YTTBAR-cut",
+        },
+        "ATLAS_CMS": {
+            f"YT{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-ATLAS_CMS_TTBAR_YT{get_suffix()}",
+            f"PTT{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-ATLAS_CMS_TTBAR_PTT{get_suffix()}",
+            #f"MTTBAR{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-ATLAS_CMS_TTBAR_MTTBAR{get_suffix()}",
+            f"MTTBAR-cut": f"251118-jth-dataset-selection-N3LO-with-ATLAS_CMS_TTBAR_MTTBAR-cut",
+            f"YTTBAR{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-ATLAS_CMS_TTBAR_YTTBAR{get_suffix()}",
+            #f"MTTBAR-YTTBAR{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-ATLAS_CMS_TTBAR_MTTBAR-YTTBAR{get_suffix()}",
+            f"MTTBAR-YTTBAR-cut": f"251118-jth-dataset-selection-N3LO-with-ATLAS_CMS_TTBAR_MTTBAR-YTTBAR-cut",
+            f"MTTBAR-PTT{get_suffix()}": f"251118-jth-dataset-selection-N3LO-with-ATLAS_TTBAR_MTTBAR-PTT{get_suffix()}",
+        }
+    }}
 
 label_dict = {"ATLAS_TTBAR_13TEV_HADR": r"$\mathrm{ATLAS}\;t\bar{t}\;13\;\mathrm{TeV}\;\mathrm{hadr.}$",
 "ATLAS_TTBAR_13TEV_LJ": r"$\mathrm{ATLAS}\;t\bar{t}\;13\;\mathrm{TeV}\;\ell+j$",
@@ -107,22 +144,20 @@ def get_wrap_indices(x_raw):
     """Return a list of indices i where x_raw[i] < x_raw[i-1]."""
     return [i for i in range(1, len(x_raw)) if x_raw[i] < x_raw[i-1]]
 
-for fits in [atlas_cms_fits]:
 
-    for obs, fit_name in fits.items():
+for exp, exp_fits in combined_dirs[order].items():
+    for obs, fit_name in exp_fits.items():
 
-        if fits == atlas_fits:
-            suffix = "ATLAS"
-        elif fits == cms_fits:
-            suffix = "CMS"
-        else:
-            suffix = "ATLAS_CMS"
+        suffix = exp
 
 
 
         dict_fit = dict(theoryid=40010006, use_cuts="internal", with_shift=False)
-
-        fit = API.fit(fit=fit_name)
+        try:
+            fit = API.fit(fit=fit_name)
+        except:
+            subprocess.run(["vp-get", "fit", fit_name])
+            fit = API.fit(fit=fit_name)
         dataset_inputs = fit.as_input()["dataset_inputs"]
 
         # metadata
@@ -223,8 +258,8 @@ for fits in [atlas_cms_fits]:
 
             legend_handles = [
                 Patch(facecolor="C0", alpha=0.3, edgecolor="C0", label=r"${\rm Data}$"),
-                Patch(facecolor="C1", alpha=0.3, edgecolor="C1", label=r"${\rm NNLO\,MHOU\,(postfit)}$"),
-                Patch(facecolor="C2", alpha=0.3, edgecolor="C2", label=r"${\rm NNLO\,MHOU\,(prefit)}$"),
+                Patch(facecolor="C1", alpha=0.3, edgecolor="C1", label=rf"${{\rm {{{order}}}\,MHOU\,(postfit)}}$"),
+                Patch(facecolor="C2", alpha=0.3, edgecolor="C2", label=rf"${{\rm {{{order}}}\,MHOU\,(prefit)}}$"),
             ]
             ax_main.legend(handles=legend_handles)
 
@@ -298,6 +333,6 @@ for fits in [atlas_cms_fits]:
             fig.tight_layout()
 
             observable_name = '_'.join(ds['dataset'].split('_')[1:])
-            filename = f"./plots/data-vs-theory/{suffix}_{obs}_{observable_name}.pdf"
+            filename = f"./plots/data-vs-theory/{order}_{exp}_{obs}_{observable_name}.pdf"
             fig.savefig(filename)
 
