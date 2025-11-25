@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from validphys.api import API
+from nnpdf_data import legacy_to_new_map
 
 from matplotlib import patches, transforms, rc
 from matplotlib.patches import Ellipse
@@ -70,6 +71,11 @@ def compute_posterior(fitname):
     # is computed using the inps_central, inps_plus, and inps_minus dictionaries
     inps_central_fit = dict(theoryid=theory_central, pdf={"from_": "fit"}, **common_dict)
 
+    if fit.as_input()["resample_negative_pseudodata"] != False:
+        print("The TCM assumes Gaussianity of the pseudodata, to ensure this set")
+        print("resample_negative_pseudodata: False")
+        print("in the n3fit runcard!")
+
     # Get the prior theory predictions for the central values
     prior_theorypreds_central = API.group_result_central_table_no_table(**inps_central)[
         "theory_central"].to_frame()  # shape (n_dat, 1)
@@ -103,10 +109,10 @@ def compute_posterior(fitname):
     # At some point we scaled the covmat to account for higher order derivatives or
     # to test depencence of the prior. It is not used in the final result
     covmat_scaling_factor = 1  # fit.as_input().get("theorycovmatconfig",{}).get("rescale_alphas_covmat",1.0)
-
+    lambda_index = ["mtop", "alphas"]
     # Compute theory covmat S_tilde on the genuine predictions (as, mt)
     beta_tilde = np.sqrt(covmat_scaling_factor) * (step_size / np.sqrt(2)) * np.array([[1, -1, 0, 0], [0, 0, 1, -1]])
-    S_tilde = beta_tilde @ beta_tilde.T
+    S_tilde = pd.DataFrame(beta_tilde @ beta_tilde.T, index=lambda_index, columns=lambda_index)
 
     delta_plus = (np.sqrt(covmat_scaling_factor) / np.sqrt(2)) * (
             prior_theorypreds_plus - prior_theorypreds_central
@@ -118,11 +124,21 @@ def compute_posterior(fitname):
     # Compute the theory cross covmat between the fitted predictions and the genuine predictions
     beta = np.array([delta_plus.iloc[:, 0].values, delta_minus.iloc[:, 0].values, delta_plus.iloc[:, 1].values,
                      delta_minus.iloc[:, 1].values]).T  # shape (n_dat, 2 * n_par)
-    S_hat = beta_tilde @ beta.T  # shape (n_par, n_dat)
+    S_hat = pd.DataFrame(beta_tilde @ beta.T, columns=delta_minus.index, index=lambda_index)  # shape (n_par, n_dat)
 
     # Compute the theory covmat on the theory predictions
-    S = beta @ beta.T
-    S = pd.DataFrame(S, index=delta_minus.index, columns=delta_minus.index)
+    S = pd.DataFrame(beta @ beta.T, index=delta_minus.index, columns=delta_minus.index)
+
+    # %%
+    # experimental covmat
+    exp_covmat = API.groups_covmat(
+        use_t0=True,
+        datacuts={"from_": "fit"},
+        t0pdfset={"from_": "datacuts"},
+        theoryid={"from_": "theory"},
+        theory={"from_": "fit"},
+        **common_dict
+    )
 
     stored_alphas_covmat = pd.read_csv(
         fit.path / f"tables/datacuts_theory_theorycovmatconfig_point_prescriptions{alphas_pp_id}_theory_covmat_custom_per_prescription.csv",
@@ -142,7 +158,7 @@ def compute_posterior(fitname):
         engine="python",
     ).fillna(0)
 
-    theory_covmat_all = pd.read_csv(
+    stored_theory_covmat_all = pd.read_csv(
         fit.path / f"tables/datacuts_theory_theorycovmatconfig_theory_covmat_custom.csv",
         index_col=[0, 1, 2],
         header=[0, 1, 2],
@@ -151,59 +167,59 @@ def compute_posterior(fitname):
         engine="python",
     ).fillna(0)
 
-    theory_covmat_all_index = pd.MultiIndex.from_tuples(
-        [(aa, bb, np.int64(cc)) for aa, bb, cc in theory_covmat_all.index],
+    # convert 3rd index to int
+    stored_alphas_covmat_index = pd.MultiIndex.from_tuples(
+        [(aa, bb, np.int64(cc)) for aa, bb, cc in stored_alphas_covmat.index],
         names=["group", "dataset", "id"],
     )
 
-    theory_covmat_all = pd.DataFrame(
-        theory_covmat_all.values, index=theory_covmat_all_index, columns=theory_covmat_all_index
+    stored_mtop_covmat_index = pd.MultiIndex.from_tuples(
+        [(aa, bb, np.int64(cc)) for aa, bb, cc in stored_mtop_covmat.index],
+        names=["group", "dataset", "id"],
     )
-    theory_covmat_all = theory_covmat_all.reindex(S.index).T.reindex(S.index)
 
-
-    stored_covmat = stored_alphas_covmat + stored_mtop_covmat
-
-    storedcovmat_index = pd.MultiIndex.from_tuples(
-        [(aa, bb, np.int64(cc)) for aa, bb, cc in stored_covmat.index],
+    stored_theory_covmat_all_index = pd.MultiIndex.from_tuples(
+        [(aa, bb, np.int64(cc)) for aa, bb, cc in stored_theory_covmat_all.index],
         names=["group", "dataset", "id"],
     )
 
     # make sure theoryID is an integer, same as in S
-    stored_covmat = pd.DataFrame(
-        stored_covmat.values, index=storedcovmat_index, columns=storedcovmat_index
+    stored_alphas_covmat = pd.DataFrame(
+        stored_alphas_covmat.values, index=stored_alphas_covmat_index, columns=stored_alphas_covmat_index
     )
-    stored_covmat = stored_covmat.reindex(S.index).T.reindex(S.index)
 
-    mhou_covmat = theory_covmat_all - stored_covmat
+    stored_mtop_covmat = pd.DataFrame(
+        stored_mtop_covmat.values, index=stored_mtop_covmat_index, columns=stored_mtop_covmat_index
+    )
 
-    if not np.allclose(S, stored_covmat):
+    stored_theory_covmat_all = pd.DataFrame(stored_theory_covmat_all.values, index=stored_theory_covmat_all_index,
+                                            columns=stored_theory_covmat_all_index)
+
+    new_names = {d[1]: legacy_to_new_map(d[1])[0] for d in stored_alphas_covmat.index}
+
+    # rename datasets using the legacy to new map
+    stored_alphas_covmat.rename(columns=new_names, index=new_names, level=1, inplace=True)
+    stored_mtop_covmat.rename(columns=new_names, index=new_names, level=1, inplace=True)
+    stored_theory_covmat_all.rename(columns=new_names, index=new_names, level=1, inplace=True)
+
+    stored_alphas_covmat = stored_alphas_covmat.reindex(S.index).T.reindex(S.index)
+    stored_mtop_covmat = stored_mtop_covmat.reindex(S.index).T.reindex(S.index)
+    stored_theory_covmat_all = stored_theory_covmat_all.reindex(S.index).T.reindex(S.index)
+
+    if not np.allclose(S, stored_alphas_covmat + stored_mtop_covmat):
         print("Reconstructed theory covmat, S, is not the same as the stored covmat!")
 
     data_theory_results = API.group_result_table_no_table(**inps_central_fit)
     theorypreds_fit = data_theory_results.iloc[:, 2:]
 
-    # experimental covmat
-    C = API.groups_covmat(
-        use_t0=True,
-        datacuts={"from_": "fit"},
-        t0pdfset={"from_": "datacuts"},
-        theoryid={"from_": "theory"},
-        theory={"from_": "fit"},
-        **common_dict
-    )
-
-    C += mhou_covmat
-
-
-
     # %%
     # Note that mean_prediction is different from the prediction of the mean PDF (i.e. replica0)
     T0 = theorypreds_fit.mean(axis=1)
     X = np.cov(theorypreds_fit)
+    X, _ = remove_negative_eigenmodes(X, tol=1e-3)
+    X = pd.DataFrame(X, index=theorypreds_fit.index, columns=theorypreds_fit.index)
 
     # remove negative eigenmodes from X
-    X, _ = remove_negative_eigenmodes(X, tol=1e-3)
 
     # In the computation we use <D>_rep and not the central value of the data D_exp, though if
     # resample_negative_pseudodata: false
@@ -213,12 +229,10 @@ def compute_posterior(fitname):
         [i.pseudodata.reindex(prior_theorypreds_central.index) for i in pseudodata], axis=1
     )
 
+    invcov = pd.DataFrame(np.linalg.inv(exp_covmat + stored_theory_covmat_all), index=exp_covmat.index,
+                          columns=exp_covmat.index)
 
-
-
-    invcov = np.linalg.inv(C + S)
-
-    #delta_T_tilde = -S_hat @ invcov @ (T0 - dat_reps.mean(axis=1))
+    # delta_T_tilde = -S_hat @ invcov @ (T0 - dat_reps.mean(axis=1))
     delta_T_tilde = -S_hat @ invcov @ (T0 - data_theory_results["data_central"])
 
     # P_tilde is Eq. 3.38.
@@ -227,6 +241,7 @@ def compute_posterior(fitname):
     # X_tile and X_hat vanish. This is because they measure the covariance of
     # T_tilde over PDF replicas, but for us T_tilde is alphas. The prediciton of
     # alphas does not depend on the PDF, and as such T_tilde^(r) == T_tilde^(0)
+
     P_tilde = S_hat @ invcov @ X @ invcov @ S_hat.T + S_tilde - S_hat @ invcov @ S_hat.T
     central_theory = np.array([mtop_central, alphas_central])
     pred = central_theory + delta_T_tilde
@@ -338,11 +353,11 @@ def remove_negative_eigenmodes(matrix, tol=1e-12):
     return A_pos, eigvals_clipped
 
 def print_results(central_value, cov):
-    central_mtop = central_value[0]
-    central_alphas = central_value[1]
-    sigma_mtop = np.sqrt(cov[0, 0])
-    sigma_alphas = np.sqrt(cov[1, 1])
-    rho = cov[0, 1] / (sigma_mtop * sigma_alphas)
+    central_mtop = central_value.loc["mtop"]
+    central_alphas = central_value.loc["alphas"]
+    sigma_mtop = np.sqrt(cov["mtop"]["mtop"])
+    sigma_alphas = np.sqrt(cov["alphas"]["alphas"])
+    rho = cov["mtop"]["alphas"] / (sigma_mtop * sigma_alphas)
     print(f"mtop (68%): {central_mtop:.3f} +/- {sigma_mtop:.3f}")
     print(f"alphas (68%): {central_alphas:.6f} +/- {sigma_alphas:.6f}")
     print(f"rho: {rho:.3f}\n")
